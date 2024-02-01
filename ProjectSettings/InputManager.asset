@@ -98,6 +98,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Asset: {fileID: 3468050191803775246}
   m_ActionId: 2776c80d-3c14-4091-8c56-d04ced07a2b0
+--- !u!114 &-3977152766589744816
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/Attack
+  m_EditorClassIdentifier: 
+  m_Asset: {fileID: 3468050191803775246}
+  m_ActionId: 6c2ab1b8-8984-453a-af3d-a3c78ae1679a
 --- !u!13 &1
 InputManager:
   m_ObjectHideFlags: 0
