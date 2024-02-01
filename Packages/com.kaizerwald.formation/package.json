@@ -1,0 +1,19 @@
+{
+  "name": "com.kaizerwald.formation",
+  "version": "1.0.0",
+  "displayName": "Kaizerwald's Formation Module",
+  "description": "Formation Tool for RTT style game",
+  "unity": "2023.2",
+  "unityRelease": "0b5",
+  "dependencies": {
+    "com.unity.mathematics": "1.3.1",
+    "com.unity.collections": "2.2.1"
+ },
+ "keywords": [
+    "utility",
+    "tool"
+  ],
+  "author": {
+    "name": "Tassarho"
+  }
+}
