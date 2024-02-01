@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 
-using static UnityEngine.Mathf;
 using static UnityEngine.Vector2;
 using static Unity.Mathematics.math;
 
@@ -18,47 +18,6 @@ namespace Kaizerwald.FormationModule
 {
     public static class FormationExtension
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsZero(this float lhs)
-        {
-            return lhs.IsAlmostEqual(0);
-            //return Approximately(lhs, 0);
-        }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsZero(this float2 lhs)
-        {
-            return lhs.x.IsZero() && lhs.y.IsZero();
-            //return Approximately(lhs.x, 0) && Approximately(lhs.y, 0);
-        }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsZero(this float3 lhs)
-        {
-            return lhs.x.IsZero() && lhs.y.IsZero() && lhs.z.IsZero();
-            //return Approximately(lhs.x, 0) && Approximately(lhs.y, 0) && Approximately(lhs.z, 0);
-        }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsAlmostEqual(this float lhs, float rhs)
-        {
-            return abs(rhs - lhs) < max(0.000001f * max(abs(lhs), abs(rhs)), EPSILON * 8);
-            //return Approximately(lhs.x, rhs.x) && Approximately(lhs.y, rhs.y);
-        }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsAlmostEqual(this float2 lhs, float2 rhs)
-        {
-            return lhs.x.IsAlmostEqual(rhs.x) && lhs.y.IsAlmostEqual(rhs.y);
-            //return Approximately(lhs.x, rhs.x) && Approximately(lhs.y, rhs.y);
-        }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsAlmostEqual(this float3 lhs, float3 rhs)
-        {
-            return lhs.x.IsAlmostEqual(rhs.x) && lhs.y.IsAlmostEqual(rhs.y) && lhs.z.IsAlmostEqual(rhs.z);
-            //return Approximately(lhs.x, rhs.x) && Approximately(lhs.y, rhs.y) && Approximately(lhs.z, rhs.z);
-        }
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ COMPARISON ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
@@ -292,7 +251,7 @@ namespace Kaizerwald.FormationModule
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                                 ◆◆◆◆◆◆ JOBS ◆◆◆◆◆◆                                                 ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-
+    [BurstCompile]
     public struct JPositionsInFormation : IJobFor
     {
         [ReadOnly] public FormationData Formation;
@@ -332,6 +291,7 @@ namespace Kaizerwald.FormationModule
         }
     }
     
+    [BurstCompile]
     public struct JPositionsInFormationWithRaycast : IJobFor
     {
         [ReadOnly] public FormationData Formation;
@@ -403,6 +363,7 @@ namespace Kaizerwald.FormationModule
         }
     }
 
+    [BurstCompile]
     internal struct JConvertRaycastHitToPosition : IJobFor
     {
         [ReadOnly, NativeDisableParallelForRestriction, NativeDisableContainerSafetyRestriction] 
@@ -410,7 +371,10 @@ namespace Kaizerwald.FormationModule
         [WriteOnly, NativeDisableParallelForRestriction, NativeDisableContainerSafetyRestriction]
         public NativeArray<float3> Positions;
         
-        public void Execute(int index) => Positions[index] = RaycastHits[index].point;
+        public void Execute(int index)
+        {
+            Positions[index] = RaycastHits[index].point;
+        }
 
         public static JobHandle Process(NativeArray<float3> positions ,NativeArray<RaycastHit> results, JobHandle dependency = default)
         {
