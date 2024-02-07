@@ -46,6 +46,16 @@ namespace Kaizerwald.FormationModule
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         public T this[int index] => Elements[index];
+        
+        public void SetCurrentFormation(in FormationData destinationFormation)
+        {
+            Formation.SetFromFormation(destinationFormation);
+        }
+        
+        public void SetDestination(in FormationData destinationFormation)
+        {
+            TargetFormation.SetFromFormation(destinationFormation);
+        }
 
         public event Action<int, int> OnSwapEvent;
 

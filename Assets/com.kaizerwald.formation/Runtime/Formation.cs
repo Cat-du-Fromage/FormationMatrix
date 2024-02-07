@@ -81,6 +81,15 @@ namespace Kaizerwald.FormationModule
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Setters ◈◈◈◈◈◈                                                                                          ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
+
+        public void SetFromFormation(in FormationData formationData)
+        {
+            NumUnitsAlive = formationData.NumUnitsAlive;
+            Width = min(formationData.Width, formationData.NumUnitsAlive);
+            Depth = (int)ceil(formationData.NumUnitsAlive / max(1f,formationData.Width));
+            DirectionForward = formationData.Direction3DForward;
+        }
+    
         public void Increment() => Add(1);
         public void Decrement() => Remove(1);
         

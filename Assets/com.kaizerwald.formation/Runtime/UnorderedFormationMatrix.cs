@@ -34,13 +34,23 @@ namespace Kaizerwald.FormationModule
         public List<Transform> Transforms { get; private set; }
         public Dictionary<T, int> ElementKeyTransformIndex { get; private set; } 
         
+        public event Action OnFormationEmpty;
+        public event Action<int> OnFormationResized;
+        
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         public T this[int index] => Elements[index];
+
+        public void SetCurrentFormation(in FormationData destinationFormation)
+        {
+            Formation.SetFromFormation(destinationFormation);
+        }
         
-        public event Action OnFormationEmpty;
-        public event Action<int> OnFormationResized;
+        public void SetDestination(in FormationData destinationFormation)
+        {
+            TargetFormation.SetFromFormation(destinationFormation);
+        }
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CONSTRUCTOR ◆◆◆◆◆◆                                               ║
