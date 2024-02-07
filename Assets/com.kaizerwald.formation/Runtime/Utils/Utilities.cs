@@ -24,6 +24,18 @@ namespace Kaizerwald.FormationModule
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void RemoveAtSwapBack<T>(this IList<T> list, T element)
+        {
+            if (!list.TryGetIndexOf(element, out int index)) return;
+            int lastIndex = list.Count - 1;
+            if (lastIndex > 0 && lastIndex != index)
+            {
+                list[index] = list[lastIndex];
+            }
+            list.RemoveAt(lastIndex);
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void Swap<TKey, TValue>(this Dictionary<TKey, TValue> dico, TKey lhs, TKey rhs)
         where TKey : class
         {
@@ -45,47 +57,50 @@ namespace Kaizerwald.FormationModule
             if (lhs == rhs) return;
             (list[lhs], list[rhs]) = (list[rhs], list[lhs]);
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool IsZero(this float lhs)
+        internal static bool TryGetIndexOf<T>(this IList<T> list, T element, out int index)
         {
-            return lhs.IsAlmostEqual(0);
-            //return Approximately(lhs, 0);
+            index = list.IndexOf(element);
+            return index != -1;
         }
         
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool IsZero(this float2 lhs)
-        {
-            return lhs.x.IsZero() && lhs.y.IsZero();
-            //return Approximately(lhs.x, 0) && Approximately(lhs.y, 0);
-        }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool IsZero(this float3 lhs)
-        {
-            return lhs.x.IsZero() && lhs.y.IsZero() && lhs.z.IsZero();
-            //return Approximately(lhs.x, 0) && Approximately(lhs.y, 0) && Approximately(lhs.z, 0);
-        }
+        // Comparison Utils
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool IsAlmostEqual(this float lhs, float rhs)
         {
             return abs(rhs - lhs) < max(0.000001f * max(abs(lhs), abs(rhs)), EPSILON * 8);
-            //return Approximately(lhs.x, rhs.x) && Approximately(lhs.y, rhs.y);
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool IsAlmostEqual(this float2 lhs, float2 rhs)
         {
             return lhs.x.IsAlmostEqual(rhs.x) && lhs.y.IsAlmostEqual(rhs.y);
-            //return Approximately(lhs.x, rhs.x) && Approximately(lhs.y, rhs.y);
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool IsAlmostEqual(this float3 lhs, float3 rhs)
         {
             return lhs.x.IsAlmostEqual(rhs.x) && lhs.y.IsAlmostEqual(rhs.y) && lhs.z.IsAlmostEqual(rhs.z);
-            //return Approximately(lhs.x, rhs.x) && Approximately(lhs.y, rhs.y) && Approximately(lhs.z, rhs.z);
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool IsZero(this float lhs)
+        {
+            return lhs.IsAlmostEqual(0);
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool IsZero(this float2 lhs)
+        {
+            return lhs.x.IsZero() && lhs.y.IsZero();
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool IsZero(this float3 lhs)
+        {
+            return lhs.x.IsZero() && lhs.y.IsZero() && lhs.z.IsZero();
         }
     }
 }

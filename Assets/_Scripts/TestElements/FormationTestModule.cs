@@ -55,13 +55,9 @@ namespace Kaizerwald
             {
                 int indexTaaTarget = formationMatrix.IndexToRealTransformIndex[i];
                 Transform taaTarget = formationMatrix.FormationTransformAccessArray[indexTaaTarget];
-                //for (int elementId = 0; elementId < Elements.Count; elementId++)
-                //{
-                    
-                    //Debug.Log($"register as first row at {i} : {indexTaaTarget}");
-                    if (Elements[i].transform != taaTarget) continue;
-                    Elements[i].OnSelected();
-                //}
+                
+                if (Elements[i].transform != taaTarget) continue;
+                Elements[i].OnSelected();
             }
         }
 
@@ -113,7 +109,8 @@ namespace Kaizerwald
         {
             for (int i = 0; i < Elements.Count; i++)
             {
-                if (Elements[i].CurrentState != EFormationTestState.Dead) continue;
+                if (formationMatrix[i].CurrentState != EFormationTestState.Dead) continue;
+                Debug.Log($"execute at index: {i}, State = {Elements[i].CurrentState}");
                 formationMatrix.OnUnitKilled(Elements[i]);
             }
         }

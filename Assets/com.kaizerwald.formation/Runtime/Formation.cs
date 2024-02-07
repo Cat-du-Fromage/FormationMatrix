@@ -98,13 +98,10 @@ namespace Kaizerwald.FormationModule
         public bool Remove(int numRemoved)
         {
             if (numRemoved == 0) return false;
-            
             NumUnitsAlive = max(0, NumUnitsAlive - numRemoved);
             Width = min(Width, NumUnitsAlive);
             Depth = (int)ceil(NumUnitsAlive / max(1f,Width));
-            Debug.Log($"Remove: {numRemoved} Formation, NumUnitsAlive = {NumUnitsAlive} DecreaseBy: Width: {Width}, Depth: {Depth}");
             return true;
-            //Debug.Log($"Formation, DecreaseBy: Width: {Width}, Depth: {Depth}");
         }
 
         public bool SetNumUnits(int value)
