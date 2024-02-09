@@ -66,7 +66,7 @@ namespace Kaizerwald.FormationModule
             this.direction2DForward = direction2DForward;
         }
         
-        public FormationData(int numUnits, float2 unitSize = default, int2 minMaxRow = default, float spaceBetweenUnit = 1f, float3 direction = default, int defaultWidth = 0)
+        public FormationData(int numUnits, int2 minMaxRow = default, float2 unitSize = default, float spaceBetweenUnit = 1f, float3 direction = default, int defaultWidth = 0)
         {
             int numberUnits = max(1,numUnits);
             numUnitsAlive = (ushort)numberUnits;
@@ -78,7 +78,7 @@ namespace Kaizerwald.FormationModule
             this.unitSize = unitSize.Equals(default) ? half2(1) : (half2)unitSize;
             spaceBetweenUnits = (half)spaceBetweenUnit;
             
-            width = defaultWidth == 0 ? maxRow : (byte)min(defaultWidth, minRow);
+            width = (byte)(numUnitsAlive < minRow ? numUnitsAlive : clamp(defaultWidth, minRow, maxRow));
             depth = (byte)ceil(numberUnits / max(1f,width));
             
             direction2DForward = direction.IsAlmostEqual(default) ? new half2(half.zero,half(1)) : half2(normalizesafe(direction).xz);
@@ -105,7 +105,7 @@ namespace Kaizerwald.FormationModule
             spaceBetweenUnits = half(other.SpaceBetweenUnits);
             unitSize = half2(other.UnitSize);
             numUnitsAlive = (ushort)max(0,numUnits);
-            width = (byte)(numUnitsAlive < minRow ? newWidth : max(minRow, newWidth));
+            width = (byte)(numUnitsAlive < minRow ? numUnitsAlive : clamp(newWidth, minRow, maxRow));
             depth = (byte)ceil(numUnitsAlive / max(1f,width));
             direction2DForward = half2(direction.xz);
         }
@@ -124,7 +124,7 @@ namespace Kaizerwald.FormationModule
             spaceBetweenUnits = half(other.SpaceBetweenUnits);
             unitSize = half2(other.UnitSize);
             numUnitsAlive = (ushort)max(0,other.NumUnitsAlive);
-            width = (byte)(numUnitsAlive < minRow ? other.Width : max(minRow, other.Width));
+            width = (byte)(numUnitsAlive < minRow ? numUnitsAlive : clamp(other.Width, minRow, maxRow));
             depth = (byte)ceil(numUnitsAlive / max(1f,width));
             direction2DForward = half2(other.Direction2DForward);
         }
@@ -136,7 +136,7 @@ namespace Kaizerwald.FormationModule
             spaceBetweenUnits = half(other.SpaceBetweenUnits);
             unitSize = half2(other.UnitSize);
             numUnitsAlive = (ushort)max(0,numUnits);
-            width = (byte)(numUnitsAlive < minRow ? newWidth : max(minRow, newWidth));
+            width = (byte)(numUnitsAlive < minRow ? numUnitsAlive : clamp(newWidth, minRow, maxRow));
             depth = (byte)ceil(numUnitsAlive / max(1f,width));
             direction2DForward = half2(direction.xz);
         }

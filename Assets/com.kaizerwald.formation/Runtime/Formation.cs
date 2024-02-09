@@ -44,7 +44,7 @@ namespace Kaizerwald.FormationModule
             MaxRow = (byte)min(byte.MaxValue, minMax.y);
             UnitSize = unitSize.IsAlmostEqual(default) ? float2(1) : unitSize;
             SpaceBetweenUnits = spaceBetweenUnit;
-            Width = BaseNumUnits < MinRow ? clamp(width, MinRow, MaxRow) : width;
+            Width = BaseNumUnits < MinRow ? BaseNumUnits : clamp(width, MinRow, MaxRow);
             Depth = (int)ceil(BaseNumUnits / max(1f,Width));
             DirectionForward = direction.IsAlmostEqual(default) ? forward() : normalizesafe(direction);
         }

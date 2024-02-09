@@ -13,3 +13,9 @@ UnorderedFormationMatrix<T>
 Added:
 Ability to set Formation from FormationData without creating a new object
 Added to FormationMatrix and UnorderedFormationMatrix setter to CurrentFormation and TargetFormation from FormationData
+
+1.0.3
+
+Fixed:
+- Inconsistency between Formation and FormationData Constructors.
+- DefaultWidth on constructors dont allow 0 except if the number of elements of the formation is 0.
