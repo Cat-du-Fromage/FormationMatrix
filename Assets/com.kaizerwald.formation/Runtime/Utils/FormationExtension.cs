@@ -334,6 +334,8 @@ namespace Kaizerwald.FormationModule
             NativeArray<RaycastCommand> commands = new (formation.NumUnitsAlive, TempJob, UninitializedMemory);
             JPositionsInFormationWithRaycast job = new JPositionsInFormationWithRaycast
             {
+                Formation = formation,
+                RegimentPosition = regimentPosition.xz,
                 OriginHeight = 8 + (int)regimentPosition.y,
                 RayDistance = 16,
                 QueryParams = new QueryParameters(terrainLayer.value),
