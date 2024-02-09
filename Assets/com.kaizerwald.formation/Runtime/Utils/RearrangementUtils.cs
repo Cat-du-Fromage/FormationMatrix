@@ -13,6 +13,33 @@ namespace Kaizerwald.FormationModule
     //TData will be a conversion of IFormationElement into a struct containing data of the unit
     public static class RearrangementUtils
     {
+        public static bool TryGetIndexAround<T>(int index, List<T> units, in FormationData formation, out int indexAround) 
+            where T : Component, IFormationElement
+        {
+            indexAround = GetIndexAround(index, units, formation.Depth, formation.Width, formation.NumUnitsLastLine);
+            return indexAround != -1;
+        }
+        
+        public static bool TryGetIndexAround<T>(int index, FormationMatrixBehaviour<T> formationMatrix, out int indexAround) 
+            where T : Component, IFormationElement
+        {
+            indexAround = GetIndexAround(index, formationMatrix.Elements, formationMatrix.Formation);
+            return indexAround != -1;
+        }
+        
+        public static bool TryGetIndexAround<T>(int index, FormationMatrix<T> formationMatrix, out int indexAround) 
+            where T : Component, IFormationElement
+        {
+            indexAround = GetIndexAround(index, formationMatrix.Elements, formationMatrix.Formation);
+            return indexAround != -1;
+        }
+        
+        public static int GetIndexAround<T>(int index, FormationMatrixBehaviour<T> formationMatrix) 
+            where T : Component, IFormationElement
+        {
+            return GetIndexAround(index, formationMatrix.Elements, formationMatrix.Formation);
+        }
+        
         public static int GetIndexAround<T>(int index, FormationMatrix<T> formationMatrix) 
             where T : Component, IFormationElement
         {

@@ -92,6 +92,18 @@ namespace Kaizerwald
 //║                                          ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
+        private void Resize(int numAlive)
+        {
+            if (numAlive > 0)
+            {
+                
+            }
+            else
+            {
+                ClearChildren();
+            }
+        }
+
         public void ClearChildren()
         {
             transform.DestroyChildren();
@@ -134,7 +146,8 @@ namespace Kaizerwald
             }
             formationMatrix = new FormationMatrix<FormationElement>(CurrentFormation, Elements);
             formationMatrix.OnSwapEvent += OnSwap;
-            formationMatrix.OnFormationEmpty += ClearChildren;
+            formationMatrix.OnFormationResized += Resize;
+            //formationMatrix.OnFormationEmpty += ClearChildren;
             //formationMatrix.OnFormationRearranged += OnFormationRearrangedEvent;
         }
 

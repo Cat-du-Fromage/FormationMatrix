@@ -3,21 +3,17 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
-using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Jobs;
-using Object = System.Object;
 
 using static Unity.Collections.Allocator;
 using static Unity.Collections.NativeArrayOptions;
 
 namespace Kaizerwald.FormationModule
 {
-    //Todo : Trouver un moyen de synchroniser les valeurs en multijoueur
-    public class FormationMatrix<T>
+    public class FormationMatrixBehaviour<T> : MonoBehaviour
     where T : Component, IFormationElement
     {
-        
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                               ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                  ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
@@ -37,6 +33,7 @@ namespace Kaizerwald.FormationModule
         public TransformAccessArray FormationTransformAccessArray { get; private set; }
         public List<Transform> Transforms { get; private set; }
         
+        //May need the inverse too Taa index => Element corresponding index
         public NativeList<int> IndexToRealTransformIndex { get; private set; }
         
         // Get Real index(TransformAccessArray) from Element
@@ -45,8 +42,15 @@ namespace Kaizerwald.FormationModule
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
+        
+        //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+        //│  ◇◇◇◇◇◇ Getter ◇◇◇◇◇◇                                                                                      │
+        //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
         public T this[int index] => Elements[index];
         
+        //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+        //│  ◇◇◇◇◇◇ Setter ◇◇◇◇◇◇                                                                                      │
+        //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
         public void SetCurrentFormation(in FormationData destinationFormation)
         {
             Formation.SetFromFormation(destinationFormation);
@@ -56,38 +60,20 @@ namespace Kaizerwald.FormationModule
         {
             TargetFormation.SetFromFormation(destinationFormation);
         }
-
+        
+    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
+    //║ ◈◈◈◈◈◈ Events ◈◈◈◈◈◈                                                                                           ║
+    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         public event Action<int, int> OnSwapEvent;
-
-        public event Action OnFormationEmpty;
         public event Action<int> OnFormationResized;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
-//║                                            ◆◆◆◆◆◆ CONSTRUCTOR ◆◆◆◆◆◆                                               ║
+//║                                             ◆◆◆◆◆◆ UNITY EVENTS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public FormationMatrix(Formation formationReference, int capacity = 0)
+        public void OnDestroy()
         {
-            Formation = formationReference;
-            TargetFormation = new Formation(formationReference);
-            Elements = new List<T>(capacity);
-            Transforms = new List<Transform>(capacity);
-            FormationTransformAccessArray = new TransformAccessArray(capacity);
-            IndexToRealTransformIndex = new NativeList<int>(capacity, Persistent);
-            ElementKeyTransformIndex = new Dictionary<T, int>(capacity);
-        }
-        
-        public FormationMatrix(Formation formationReference, List<T> formationElements) : this(formationReference, formationElements.Count)
-        {
-            Elements = formationElements; // we link the lists
-            foreach (T element in formationElements)
-            {
-                int index = Transforms.Count;
-                Transforms.Add(element.transform);
-                FormationTransformAccessArray.Add(element.transform);
-                IndexToRealTransformIndex.Add(index);
-                ElementKeyTransformIndex.Add(element, index);
-            }
+            Dispose();
         }
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
@@ -100,9 +86,17 @@ namespace Kaizerwald.FormationModule
             Rearrangement();
         }
 
-        private int ToFormationIndex(T element)
+        private int GetIndexInFormation(T element)
         {
             return Elements.IndexOf(element);
+        }
+        
+    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
+    //║ ◈◈◈◈◈◈ Request Calls ◈◈◈◈◈◈                                                                                    ║
+    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
+        public void OnUnitKilled(T element)
+        {
+            deadElements.Add(GetIndexInFormation(element));
         }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
@@ -127,13 +121,6 @@ namespace Kaizerwald.FormationModule
             Elements.Remove(element);
             ResetTransformsIndicators();
             return true;
-        }
-        
-        //Internal Use
-        private void RemoveAtBack(int numToRemove)
-        {
-            CleanDeadElements(numToRemove);
-            ResetTransformsIndicators();
         }
 
         private void ResetTransformsIndicators()
@@ -164,46 +151,6 @@ namespace Kaizerwald.FormationModule
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Rearrangement ◈◈◈◈◈◈                                                                                    ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        private void Rearrangement()
-        {
-            if (!RegisterDeaths(out int cacheNumDead)) return;
-            TargetFormation.Remove(cacheNumDead); //was needed before rearrange, make more sense to let it here anyway
-            Rearrange();
-            if (cacheNumDead >= Elements.Count)
-            {
-                Clear();
-            }
-            else
-            {
-                RemoveAtBack(cacheNumDead);
-            }
-            ResizeFormation(cacheNumDead);
-        }
-
-        private void CleanDeadElements(int numDead)
-        {
-            NativeArray<int> trashItems = new (numDead, Temp, UninitializedMemory);
-            for (int i = 0; i < numDead; i++)
-            {
-                T elementToRemove = Elements[^1];
-                trashItems[i] = ElementKeyTransformIndex[elementToRemove];
-                Elements.RemoveAt(Elements.Count-1);
-                elementToRemove.AfterRemoval();
-            }
-            trashItems.Sort();
-            for (int i = numDead - 1; i > -1; i--)
-            {
-                int index = trashItems[i];
-                FormationTransformAccessArray.RemoveAtSwapBack(index);
-                Transforms.RemoveAtSwapBack(index);
-            }
-        }
-        
-        public void OnUnitKilled(T element)
-        {
-            deadElements.Add(ToFormationIndex(element));
-        }
-        
         //REAL index already used from here!!
         private bool RegisterDeaths(out int numDead)
         {
@@ -216,24 +163,10 @@ namespace Kaizerwald.FormationModule
             return true;
         }
         
-        private void ResizeFormation(int numToRemove)
-        {
-            Formation.Remove(numToRemove);
-            if (Formation.NumUnitsAlive == 0)
-            {
-                OnFormationEmpty?.Invoke();
-            }
-            else
-            {
-                OnFormationResized?.Invoke(Formation.NumUnitsAlive);
-            }
-        }
-        
         private void SwapByIndex(int lhs, int rhs)
         {
             IndexToRealTransformIndex.Swap(lhs, rhs);
             Elements.Swap(lhs, rhs);
-            
             //Order will be send from here!
             Elements[lhs].OnRearrangement(lhs);
             Elements[rhs].OnRearrangement(rhs);
@@ -242,42 +175,67 @@ namespace Kaizerwald.FormationModule
         
         private void Rearrange()
         {
-            //CAREFULL IF IN MOVEMENT
             for (int i = 0; i < Elements.Count; i++)
             {
                 if (deadElements.Count == 0) break;
                 SwapRearrange();
             }
-            if(deadElements.Count > 0) deadElements.Clear();
-        }
-        
-        private void SwapRearrange()
-        {
-            int deadIndex = deadElements.Min;
-            int swapIndex = RearrangementUtils.GetIndexAround(deadIndex, this);
-            if (swapIndex == -1)
+            deadElements.Clear();
+            return;
+            //┌▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁┐
+            //▕  ◇◇◇◇◇◇ Internal Methods ◇◇◇◇◇◇                                                                        ▏
+            //└▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔┘
+            void SwapRearrange()
             {
+                int deadIndex = deadElements.Min;
+                if (!RearrangementUtils.TryGetIndexAround(deadIndex, this, out int swapIndex))
+                {
+                    deadElements.Remove(deadIndex);
+                    return;
+                }
+                SwapByIndex(deadIndex, swapIndex);
                 deadElements.Remove(deadIndex);
-                return;
+                deadElements.Add(swapIndex);
             }
-            SwapByIndex(deadIndex, swapIndex);
-            SwapDead(deadIndex, swapIndex);
         }
         
-        private void SwapDead(int deadIndex, int swapIndex)
+        private void Rearrangement()
         {
-            deadElements.Remove(deadIndex);
-            deadElements.Add(swapIndex);
+            if (!RegisterDeaths(out int cacheNumDead)) return;
+            TargetFormation.Remove(cacheNumDead); //was needed before rearrange, make more sense to let it here anyway
+            Rearrange();
+            if (cacheNumDead >= Elements.Count)
+            {
+                Clear();
+            }
+            else
+            {
+                CleanDeadElements(cacheNumDead);
+                ResetTransformsIndicators();
+            }
+            Formation.Remove(cacheNumDead);
+            OnFormationResized?.Invoke(Formation.NumUnitsAlive);
+        }
+
+        private void CleanDeadElements(int numDead)
+        {
+            NativeArray<int> trashItems = new (numDead, Temp, UninitializedMemory);
+            for (int i = 0; i < numDead; i++)
+            {
+                T elementToRemove = Elements[^1];
+                trashItems[i] = ElementKeyTransformIndex[elementToRemove];
+                Elements.RemoveAt(Elements.Count-1);
+                elementToRemove.AfterRemoval();
+            }
+            
+            // MUST BE DONE IN REVERSE! because of the nature of RemoveAtSwapBack
+            trashItems.Sort();
+            for (int i = numDead - 1; i > -1; i--)
+            {
+                int index = trashItems[i];
+                FormationTransformAccessArray.RemoveAtSwapBack(index);
+                Transforms.RemoveAtSwapBack(index);
+            }
         }
     }
 }
-
-/*
-int safeGuard = Elements.Count;
-int safeIndex = 0;
-while (DeadElements.Count > 0 && safeIndex <= safeGuard)
-{
-    SwapRearrange(futureFormation);
-    safeIndex++;
-}
-*/

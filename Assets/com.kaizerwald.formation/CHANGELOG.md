@@ -19,3 +19,11 @@ Added to FormationMatrix and UnorderedFormationMatrix setter to CurrentFormation
 Fixed:
 - Inconsistency between Formation and FormationData Constructors.
 - DefaultWidth on constructors dont allow 0 except if the number of elements of the formation is 0.
+
+1.1.0
+
+Added:
+ - FormationMatrixBehaviour, Unity's component version of formationMatrix
+
+Fixed:
+- rewrite FormationMatrices for more clarity
