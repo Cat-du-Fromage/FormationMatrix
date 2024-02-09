@@ -91,6 +91,29 @@ namespace Kaizerwald.FormationModule
             return Elements.IndexOf(element);
         }
         
+        public FormationMatrixBehaviour<T> Initialize(Formation formationReference, List<T> formationElements)
+        {
+            Formation = formationReference;
+            TargetFormation = new Formation(formationReference);
+
+            Transforms = new List<Transform>(formationElements.Count);
+            FormationTransformAccessArray = new TransformAccessArray(formationElements.Count);
+            
+            IndexToRealTransformIndex = new NativeList<int>(formationElements.Count, Persistent);
+            ElementKeyTransformIndex = new Dictionary<T, int>(formationElements.Count);
+            
+            Elements = formationElements; // we link the lists
+            foreach (T element in formationElements)
+            {
+                int index = Transforms.Count;
+                Transforms.Add(element.transform);
+                FormationTransformAccessArray.Add(element.transform);
+                IndexToRealTransformIndex.Add(index);
+                ElementKeyTransformIndex.Add(element, index);
+            }
+            return this;
+        }
+        
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Request Calls ◈◈◈◈◈◈                                                                                    ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
