@@ -81,7 +81,7 @@ namespace Kaizerwald.FormationModule
 //║                                          ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        protected virtual void OnUpdate()
+        public virtual void OnUpdate()
         {
             if (deadElements.Count <= 0) return;
             Rearrangement();
