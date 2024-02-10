@@ -15,11 +15,13 @@ namespace Kaizerwald
         Selected
     }
     
-    public class FormationElement : MonoBehaviour, IFormationElement
+    public class FormationElement : MonoBehaviour, IOrderedFormationElement
     {
         public int InitialIndex;
         [field:SerializeField] public int PreviousIndexInRegiment { get; set; }
         [field:SerializeField] public int CurrentIndexInRegiment { get; set; }
+        
+        [field:SerializeField]  public int IndexInFormation { get; private set; }
         [field:SerializeField] public bool IsDead { get; private set; }
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
@@ -174,5 +176,7 @@ namespace Kaizerwald
             button.colors = deadColorBlock;
             CurrentState = EFormationTestState.Dead;
         }
+
+        
     }
 }
