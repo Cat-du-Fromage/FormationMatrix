@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Jobs;
 
@@ -24,6 +25,9 @@ namespace Kaizerwald.FormationModule
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+        public float3 LeaderTargetPosition { get; private set; }
+        
         // Reference
         public Formation Formation { get; private set; }
         public Formation TargetFormation { get; private set; }
@@ -34,30 +38,33 @@ namespace Kaizerwald.FormationModule
         public List<Transform> Transforms { get; private set; }
         public Dictionary<T, int> ElementKeyTransformIndex { get; private set; } 
         
-        public event Action OnFormationEmpty;
-        public event Action<int> OnFormationResized;
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         public T this[int index] => Elements[index];
 
-        public void SetCurrentFormation(in FormationData destinationFormation)
-        {
-            Formation.SetFromFormation(destinationFormation);
-        }
+        public void SetCurrentFormation(in FormationData destinationFormation) => Formation.SetFromFormation(destinationFormation);
+        public void SetTargetFormation(in FormationData destinationFormation) => TargetFormation.SetFromFormation(destinationFormation);
+        public void SetTargetPosition(in float3 leaderTargetPosition) => LeaderTargetPosition = leaderTargetPosition;
         
-        public void SetDestination(in FormationData destinationFormation)
+        public void SetDestination(in float3 leaderTargetPosition, in FormationData destinationFormation)
         {
+            LeaderTargetPosition = leaderTargetPosition;
             TargetFormation.SetFromFormation(destinationFormation);
         }
+    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
+    //║ ◈◈◈◈◈◈ Events ◈◈◈◈◈◈                                                                                           ║
+    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
+        public event Action<int> OnFormationResized;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                            ◆◆◆◆◆◆ CONSTRUCTOR ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public UnorderedFormationMatrix(Formation formationReference, int capacity = 0)
+        public UnorderedFormationMatrix(Formation formationReference, float3 currentPosition = default, int capacity = 0)
         {
+            LeaderTargetPosition = currentPosition;
             Formation = formationReference;
             TargetFormation = new Formation(formationReference);
             Elements = new List<T>(capacity);
@@ -66,7 +73,8 @@ namespace Kaizerwald.FormationModule
             ElementKeyTransformIndex = new Dictionary<T, int>(capacity);
         }
 
-        public UnorderedFormationMatrix(Formation formationReference, List<T> formationElements) : this(formationReference, formationElements.Count)
+        public UnorderedFormationMatrix(Formation formationReference, List<T> formationElements, float3 currentPosition = default) 
+            : this(formationReference, currentPosition, formationElements.Count)
         {
             Elements = formationElements;
             foreach (T element in formationElements)
@@ -82,7 +90,7 @@ namespace Kaizerwald.FormationModule
 //║                                          ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public void Update()
+        public void OnUpdate()
         {
             if (destroyedElements.Count <= 0) return;
             cacheDestroyedElements = new HashSet<T>(destroyedElements);
@@ -146,20 +154,6 @@ namespace Kaizerwald.FormationModule
             return true;
         }
         
-        private void ResizeFormation(int numToRemove)
-        {
-            Formation.Remove(numToRemove);
-            TargetFormation.Remove(numToRemove);
-            if (Formation.NumUnitsAlive == 0)
-            {
-                OnFormationEmpty?.Invoke();
-            }
-            else
-            {
-                OnFormationResized?.Invoke(Formation.NumUnitsAlive);
-            }
-        }
-
         private void ProcessDestroyedElements()
         {
             foreach (T deadElement in cacheDestroyedElements)
@@ -173,6 +167,7 @@ namespace Kaizerwald.FormationModule
         private void Rearrangement()
         {
             if (!RegisterDeaths(out int cacheNumDead)) return;
+            TargetFormation.Remove(cacheNumDead); //was needed before rearrange, make more sense to let it here anyway
             if (cacheNumDead >= Elements.Count)
             {
                 Clear();
@@ -181,7 +176,8 @@ namespace Kaizerwald.FormationModule
             {
                 ProcessDestroyedElements();
             }
-            ResizeFormation(cacheNumDead);
+            Formation.Remove(cacheNumDead);
+            OnFormationResized?.Invoke(Formation.NumUnitsAlive);
         }
     }
 }

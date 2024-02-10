@@ -27,7 +27,7 @@ namespace Kaizerwald.FormationModule
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-
+        public float3 LeaderTargetPosition { get; private set; }
         public Formation Formation { get; private set; }
         public Formation TargetFormation { get; private set; }
         
@@ -54,13 +54,13 @@ namespace Kaizerwald.FormationModule
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
         //│  ◇◇◇◇◇◇ Setter ◇◇◇◇◇◇                                                                                      │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-        public void SetCurrentFormation(in FormationData destinationFormation)
+        public void SetCurrentFormation(in FormationData destinationFormation) => Formation.SetFromFormation(destinationFormation);
+        public void SetTargetFormation(in FormationData destinationFormation) => TargetFormation.SetFromFormation(destinationFormation);
+        public void SetTargetPosition(in float3 leaderTargetPosition) => LeaderTargetPosition = leaderTargetPosition;
+        
+        public void SetDestination(in float3 leaderTargetPosition, in FormationData destinationFormation)
         {
-            Formation.SetFromFormation(destinationFormation);
-        }
-            
-        public void SetDestination(in FormationData destinationFormation)
-        {
+            LeaderTargetPosition = leaderTargetPosition;
             TargetFormation.SetFromFormation(destinationFormation);
         }
             
@@ -74,8 +74,9 @@ namespace Kaizerwald.FormationModule
 //║                                            ◆◆◆◆◆◆ CONSTRUCTOR ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public FormationMatrix(Formation formationReference, int capacity = 0)
+        public FormationMatrix(Formation formationReference, float3 currentPosition = default, int capacity = 0)
         {
+            LeaderTargetPosition = currentPosition;
             Formation = formationReference;
             TargetFormation = new Formation(formationReference);
             Elements = new List<T>(capacity);
@@ -85,7 +86,8 @@ namespace Kaizerwald.FormationModule
             ElementKeyTransformIndex = new Dictionary<T, int>(capacity);
         }
         
-        public FormationMatrix(Formation formationReference, List<T> formationElements) : this(formationReference, formationElements.Count)
+        public FormationMatrix(Formation formationReference, List<T> formationElements, float3 currentPosition = default) 
+            : this(formationReference, currentPosition, formationElements.Count)
         {
             Elements = formationElements; // we link the lists
             foreach (T element in formationElements)
@@ -102,7 +104,7 @@ namespace Kaizerwald.FormationModule
 //║                                          ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public void Update()
+        public void OnUpdate()
         {
             if (deadElements.Count <= 0) return;
             Rearrangement();

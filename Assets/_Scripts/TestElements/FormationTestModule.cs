@@ -80,7 +80,7 @@ namespace Kaizerwald
 
         private void Update()
         {
-            formationMatrix.Update();
+            formationMatrix.OnUpdate();
         }
 
         private void OnDestroy()

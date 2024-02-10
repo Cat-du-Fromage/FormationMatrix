@@ -32,3 +32,8 @@ Fixed:
 
 Fixed:
 - FormationMatrixBehaviour is now an abstract Monobehaviour as Generic Monobehaviour are not allowed by the engine!
+
+1.1.2
+
+Added:
+- float3:LeaderTargetPosition is now part of FormationMatrices

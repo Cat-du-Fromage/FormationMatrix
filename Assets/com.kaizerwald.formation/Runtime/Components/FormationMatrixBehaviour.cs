@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Jobs;
 
@@ -24,6 +25,7 @@ namespace Kaizerwald.FormationModule
 //║                                             ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
+        public float3 LeaderTargetPosition { get; private set; }
         public Formation Formation { get; private set; }
         public Formation TargetFormation { get; private set; }
         
@@ -52,13 +54,13 @@ namespace Kaizerwald.FormationModule
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
         //│  ◇◇◇◇◇◇ Setter ◇◇◇◇◇◇                                                                                      │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-        public void SetCurrentFormation(in FormationData destinationFormation)
-        {
-            Formation.SetFromFormation(destinationFormation);
-        }
+        public void SetCurrentFormation(in FormationData destinationFormation) => Formation.SetFromFormation(destinationFormation);
+        public void SetTargetFormation(in FormationData destinationFormation) => TargetFormation.SetFromFormation(destinationFormation);
+        public void SetTargetPosition(in float3 leaderTargetPosition) => LeaderTargetPosition = leaderTargetPosition;
         
-        public void SetDestination(in FormationData destinationFormation)
+        public void SetDestination(in float3 leaderTargetPosition, in FormationData destinationFormation)
         {
+            LeaderTargetPosition = leaderTargetPosition;
             TargetFormation.SetFromFormation(destinationFormation);
         }
         
@@ -87,8 +89,10 @@ namespace Kaizerwald.FormationModule
             Rearrangement();
         }
         
-        public FormationMatrixBehaviour<T> Initialize(Formation formationReference, List<T> formationElements)
+        public FormationMatrixBehaviour<T> Initialize(float3 leaderPosition, Formation formationReference, List<T> formationElements)
         {
+            LeaderTargetPosition = leaderPosition;
+            
             Formation = formationReference;
             TargetFormation = new Formation(formationReference);
 
