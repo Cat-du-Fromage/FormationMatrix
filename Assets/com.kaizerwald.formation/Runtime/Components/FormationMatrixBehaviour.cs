@@ -11,14 +11,14 @@ using static Unity.Collections.NativeArrayOptions;
 
 namespace Kaizerwald.FormationModule
 {
-    public class FormationMatrixBehaviour<T> : MonoBehaviour
+    public abstract class FormationMatrixBehaviour<T> : MonoBehaviour
     where T : Component, IFormationElement
     {
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                               ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                  ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        private SortedSet<int> deadElements = new SortedSet<int>();
+        protected SortedSet<int> deadElements = new SortedSet<int>();
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                               ║
@@ -42,7 +42,8 @@ namespace Kaizerwald.FormationModule
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        
+        public int GetIndexInFormation(T element) => Elements.IndexOf(element);
+    
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
         //│  ◇◇◇◇◇◇ Getter ◇◇◇◇◇◇                                                                                      │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
@@ -71,7 +72,7 @@ namespace Kaizerwald.FormationModule
 //║                                             ◆◆◆◆◆◆ UNITY EVENTS ◆◆◆◆◆◆                                             ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public void OnDestroy()
+        protected virtual void OnDestroy()
         {
             Dispose();
         }
@@ -80,15 +81,10 @@ namespace Kaizerwald.FormationModule
 //║                                          ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public void Update()
+        protected virtual void OnUpdate()
         {
             if (deadElements.Count <= 0) return;
             Rearrangement();
-        }
-
-        private int GetIndexInFormation(T element)
-        {
-            return Elements.IndexOf(element);
         }
         
         public FormationMatrixBehaviour<T> Initialize(Formation formationReference, List<T> formationElements)
@@ -146,7 +142,7 @@ namespace Kaizerwald.FormationModule
             return true;
         }
 
-        private void ResetTransformsIndicators()
+        protected void ResetTransformsIndicators()
         {
             IndexToRealTransformIndex.Clear();
             ElementKeyTransformIndex.Clear();
@@ -175,7 +171,7 @@ namespace Kaizerwald.FormationModule
     //║ ◈◈◈◈◈◈ Rearrangement ◈◈◈◈◈◈                                                                                    ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         //REAL index already used from here!!
-        private bool RegisterDeaths(out int numDead)
+        protected bool RegisterDeaths(out int numDead)
         {
             numDead = deadElements.Count;
             if (numDead == 0) return false;
@@ -186,7 +182,7 @@ namespace Kaizerwald.FormationModule
             return true;
         }
         
-        private void SwapByIndex(int lhs, int rhs)
+        protected void SwapByIndex(int lhs, int rhs)
         {
             IndexToRealTransformIndex.Swap(lhs, rhs);
             Elements.Swap(lhs, rhs);
@@ -196,7 +192,7 @@ namespace Kaizerwald.FormationModule
             OnSwapEvent?.Invoke(lhs, rhs);
         }
         
-        private void Rearrange()
+        protected void Rearrange()
         {
             for (int i = 0; i < Elements.Count; i++)
             {
@@ -222,7 +218,7 @@ namespace Kaizerwald.FormationModule
             }
         }
         
-        private void Rearrangement()
+        protected void Rearrangement()
         {
             if (!RegisterDeaths(out int cacheNumDead)) return;
             TargetFormation.Remove(cacheNumDead); //was needed before rearrange, make more sense to let it here anyway
@@ -240,7 +236,7 @@ namespace Kaizerwald.FormationModule
             OnFormationResized?.Invoke(Formation.NumUnitsAlive);
         }
 
-        private void CleanDeadElements(int numDead)
+        protected void CleanDeadElements(int numDead)
         {
             NativeArray<int> trashItems = new (numDead, Temp, UninitializedMemory);
             for (int i = 0; i < numDead; i++)

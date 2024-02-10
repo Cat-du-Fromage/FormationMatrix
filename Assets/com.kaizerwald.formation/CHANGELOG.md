@@ -27,3 +27,8 @@ Added:
 
 Fixed:
 - rewrite FormationMatrices for more clarity
+
+1.1.1
+
+Fixed:
+- FormationMatrixBehaviour is now an abstract Monobehaviour as Generic Monobehaviour are not allowed by the engine!
