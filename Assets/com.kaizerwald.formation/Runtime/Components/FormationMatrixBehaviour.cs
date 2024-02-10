@@ -25,21 +25,21 @@ namespace Kaizerwald.FormationModule
 //║                                             ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public float3 LeaderTargetPosition { get; private set; }
-        public Formation Formation { get; private set; }
-        public Formation TargetFormation { get; private set; }
+        public float3 LeaderTargetPosition { get; protected set; }
+        public Formation Formation { get; protected set; }
+        public Formation TargetFormation { get; protected set; }
         
         // Ordered by "index in formation"
-        public List<T> Elements{ get; private set; } 
+        public List<T> Elements{ get; protected set; } 
         
-        public TransformAccessArray FormationTransformAccessArray { get; private set; }
-        public List<Transform> Transforms { get; private set; }
+        public TransformAccessArray FormationTransformAccessArray { get; protected set; }
+        public List<Transform> Transforms { get; protected set; }
         
         //May need the inverse too Taa index => Element corresponding index
-        public NativeList<int> IndexToRealTransformIndex { get; private set; }
+        public NativeList<int> IndexToRealTransformIndex { get; protected set; }
         
         // Get Real index(TransformAccessArray) from Element
-        public Dictionary<T, int> ElementKeyTransformIndex { get; private set; } 
+        public Dictionary<T, int> ElementKeyTransformIndex { get; protected set; } 
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
