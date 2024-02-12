@@ -12,6 +12,7 @@ using static Unity.Collections.NativeArrayOptions;
 
 namespace Kaizerwald.FormationModule
 {
+    //TODO: replace "Dead" naming convention by "inactive" (more accurate)
     public abstract class FormationMatrixBehaviour<T> : MonoBehaviour
     where T : Component, IFormationElement
     {
@@ -29,46 +30,43 @@ namespace Kaizerwald.FormationModule
         public Formation Formation { get; protected set; }
         public Formation TargetFormation { get; protected set; }
         
-        // Ordered by "index in formation"
-        public List<T> Elements{ get; protected set; } 
-        
-        public TransformAccessArray FormationTransformAccessArray { get; protected set; }
+        public List<T> Elements{ get; protected set; } // Ordered by "index in formation"
         public List<Transform> Transforms { get; protected set; }
+        public TransformAccessArray FormationTransformAccessArray { get; protected set; }
         
-        //May need the inverse too Taa index => Element corresponding index
-        public NativeList<int> IndexToRealTransformIndex { get; protected set; }
-        
-        // Get Real index(TransformAccessArray) from Element
-        public Dictionary<T, int> ElementKeyTransformIndex { get; protected set; } 
+        public NativeList<int> IndexToRealTransformIndex { get; protected set; } //May need the inverse too Taa index => Element corresponding index
+        public Dictionary<T, int> ElementKeyTransformIndex { get; protected set; } // Get Real index(TransformAccessArray) from Element
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
+        public T this[int index] => Elements[index];
+        public int Count => Elements.Count;
         public int GetIndexInFormation(T element) => Elements.IndexOf(element);
-    
+        
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
         //│  ◇◇◇◇◇◇ Getter ◇◇◇◇◇◇                                                                                      │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-        public T this[int index] => Elements[index];
+        
         
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
         //│  ◇◇◇◇◇◇ Setter ◇◇◇◇◇◇                                                                                      │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-        public void SetCurrentFormation(in FormationData destinationFormation) => Formation.SetFromFormation(destinationFormation);
-        public void SetTargetFormation(in FormationData destinationFormation) => TargetFormation.SetFromFormation(destinationFormation);
+        public void SetCurrentFormation(in FormationData currentFormation) => Formation.SetFromFormation(currentFormation);
+        public void SetTargetFormation(in FormationData targetFormation) => TargetFormation.SetFromFormation(targetFormation);
         public void SetTargetPosition(in float3 leaderTargetPosition) => LeaderTargetPosition = leaderTargetPosition;
         
-        public void SetDestination(in float3 leaderTargetPosition, in FormationData destinationFormation)
+        public void SetDestination(in float3 leaderTargetPosition, in FormationData targetFormation)
         {
             LeaderTargetPosition = leaderTargetPosition;
-            TargetFormation.SetFromFormation(destinationFormation);
+            TargetFormation.SetFromFormation(targetFormation);
         }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Events ◈◈◈◈◈◈                                                                                           ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        public event Action<int, int> OnSwapEvent;
-        public event Action<int> OnFormationResized;
+        public virtual event Action<int, int> OnSwapEvent;
+        public virtual event Action<int> OnFormationResized;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ UNITY EVENTS ◆◆◆◆◆◆                                             ║
@@ -82,14 +80,17 @@ namespace Kaizerwald.FormationModule
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                          ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-
+        
         public virtual void OnUpdate()
         {
             if (deadElements.Count <= 0) return;
             Rearrangement();
         }
         
-        public FormationMatrixBehaviour<T> Initialize(float3 leaderPosition, Formation formationReference, List<T> formationElements)
+    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
+    //║ ◈◈◈◈◈◈ Initialization Methods ◈◈◈◈◈◈                                                                           ║
+    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
+        public virtual FormationMatrixBehaviour<T> Initialize(float3 leaderPosition, Formation formationReference, List<T> formationElements)
         {
             LeaderTargetPosition = leaderPosition;
             
@@ -117,10 +118,17 @@ namespace Kaizerwald.FormationModule
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Request Calls ◈◈◈◈◈◈                                                                                    ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
+    
+    
+        //TODO: Change for OnElementDeactivate/OnElementInactie
         public virtual void OnUnitKilled(T element)
         {
             deadElements.Add(GetIndexInFormation(element));
         }
+        
+        //TODO: introduce function: SetElementInactive(T element)
+        
+        
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Add | Remove ◈◈◈◈◈◈                                                                                     ║
@@ -158,14 +166,14 @@ namespace Kaizerwald.FormationModule
             }
         }
         
-        public void Clear()
+        public virtual void Clear()
         {
             Transforms.Clear();
             Elements.Clear();
             ElementKeyTransformIndex.Clear();
         }
         
-        public void Dispose()
+        public virtual void Dispose()
         {
             if(IndexToRealTransformIndex.IsCreated) IndexToRealTransformIndex.Dispose();
             if(FormationTransformAccessArray.isCreated) FormationTransformAccessArray.Dispose();
@@ -222,7 +230,7 @@ namespace Kaizerwald.FormationModule
             }
         }
         
-        protected void Rearrangement()
+        protected virtual void Rearrangement()
         {
             if (!RegisterDeaths(out int cacheNumDead)) return;
             TargetFormation.Remove(cacheNumDead); //was needed before rearrange, make more sense to let it here anyway
@@ -240,7 +248,7 @@ namespace Kaizerwald.FormationModule
             OnFormationResized?.Invoke(Formation.NumUnitsAlive);
         }
 
-        protected void CleanDeadElements(int numDead)
+        protected virtual void CleanDeadElements(int numDead)
         {
             NativeArray<int> trashItems = new (numDead, Temp, UninitializedMemory);
             for (int i = 0; i < numDead; i++)

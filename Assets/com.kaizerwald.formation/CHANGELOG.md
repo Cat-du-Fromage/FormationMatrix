@@ -37,3 +37,8 @@ Fixed:
 
 Added:
 - float3:LeaderTargetPosition is now part of FormationMatrices
+
+1.1.3
+Fixe Before Breaking Changes
+Fixed:
+- UnorderedFormation DestroyImmediate has now correct behaviour

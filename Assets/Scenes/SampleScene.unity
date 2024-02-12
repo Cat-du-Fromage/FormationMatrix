@@ -1279,7 +1279,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   FormationElementPrefab: {fileID: 3896965775120241806, guid: 75f51f548e8cafd4b9a6e12d21dd2575,
     type: 3}
-  <NumUnits>k__BackingField: 12
+  <NumUnits>k__BackingField: 8
   <Width>k__BackingField: 4
 --- !u!1 &1334168324
 GameObject:
