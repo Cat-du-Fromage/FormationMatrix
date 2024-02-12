@@ -117,7 +117,7 @@ namespace Kaizerwald.FormationModule
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Request Calls ◈◈◈◈◈◈                                                                                    ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        public void OnUnitKilled(T element)
+        public virtual void OnUnitKilled(T element)
         {
             deadElements.Add(GetIndexInFormation(element));
         }
@@ -125,7 +125,7 @@ namespace Kaizerwald.FormationModule
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Add | Remove ◈◈◈◈◈◈                                                                                     ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        public void Add(T element)
+        public virtual void Add(T element)
         {
             int index = Elements.Count;
             Elements.Add(element);
@@ -135,7 +135,7 @@ namespace Kaizerwald.FormationModule
             ElementKeyTransformIndex.Add(element, index);
         }
         
-        public bool Remove(T element)
+        public virtual bool Remove(T element)
         {
             bool elementExist = ElementKeyTransformIndex.TryGetValue(element, out int indexToRemove);
             if (!elementExist) return false;
@@ -146,7 +146,7 @@ namespace Kaizerwald.FormationModule
             return true;
         }
 
-        protected void ResetTransformsIndicators()
+        protected virtual void ResetTransformsIndicators()
         {
             IndexToRealTransformIndex.Clear();
             ElementKeyTransformIndex.Clear();
@@ -175,7 +175,7 @@ namespace Kaizerwald.FormationModule
     //║ ◈◈◈◈◈◈ Rearrangement ◈◈◈◈◈◈                                                                                    ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         //REAL index already used from here!!
-        protected bool RegisterDeaths(out int numDead)
+        protected virtual bool RegisterDeaths(out int numDead)
         {
             numDead = deadElements.Count;
             if (numDead == 0) return false;
@@ -186,7 +186,7 @@ namespace Kaizerwald.FormationModule
             return true;
         }
         
-        protected void SwapByIndex(int lhs, int rhs)
+        protected virtual void SwapByIndex(int lhs, int rhs)
         {
             IndexToRealTransformIndex.Swap(lhs, rhs);
             Elements.Swap(lhs, rhs);
@@ -196,7 +196,7 @@ namespace Kaizerwald.FormationModule
             OnSwapEvent?.Invoke(lhs, rhs);
         }
         
-        protected void Rearrange()
+        protected virtual void Rearrange()
         {
             for (int i = 0; i < Elements.Count; i++)
             {
