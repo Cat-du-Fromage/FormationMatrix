@@ -54,11 +54,11 @@ namespace Kaizerwald.FormationModule
             Rearrangement();
         }
         
-        public override void Initialize(Formation formationReference, List<T> formationElements, float3 leaderPosition = default)
+        public override void InitializeFormation(Formation formationReference, List<T> formationElements, float3 leaderPosition = default)
         {
             elementIndexToTransformIndex = new NativeList<int>(formationElements.Count, Persistent);
             transformIndexToElementIndex = new NativeList<int>(formationElements.Count, Persistent);
-            base.Initialize(formationReference, formationElements, leaderPosition);
+            base.InitializeFormation(formationReference, formationElements, leaderPosition);
         }
 
         public override void RegisterInactiveElement(T element)

@@ -142,7 +142,7 @@ namespace Kaizerwald
                 //newElement.SetElementNumber(i);
                 tmpElements.Add(newElement);
             }
-            Initialize(tmpFormation, tmpElements);
+            InitializeFormation(tmpFormation, tmpElements);
             OnElementSwapped += OnSwap;
             OnFormationResized += Resize;
         }

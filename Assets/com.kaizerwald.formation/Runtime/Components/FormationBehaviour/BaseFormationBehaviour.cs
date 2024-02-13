@@ -83,7 +83,7 @@ namespace Kaizerwald.FormationModule
         //║ ◈◈◈◈◈◈ Initialization Methods ◈◈◈◈◈◈                                                                           ║
         //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         
-        public virtual void Initialize(Formation formationReference, List<T> formationElements, float3 leaderPosition = default)
+        public virtual void InitializeFormation(Formation formationReference, List<T> formationElements, float3 leaderPosition = default)
         {
             TargetPosition = leaderPosition;
             CurrentFormation = new Formation(formationReference);
