@@ -30,7 +30,7 @@ namespace Kaizerwald.FormationModule
         public virtual void TriggerInactiveElement()
         {
             IsInactive = true;
-            FormationMatrix.SetElementInactive(this);
+            FormationMatrix.RegisterInactiveElement(this);
         }
 
         public virtual void BeforeRemoval() { return; }

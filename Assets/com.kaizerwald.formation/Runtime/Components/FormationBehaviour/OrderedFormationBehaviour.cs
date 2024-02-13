@@ -20,19 +20,24 @@ namespace Kaizerwald.FormationModule
 //║                                               ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                  ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        protected SortedSet<int> InactiveElements = new SortedSet<int>();
+        protected SortedSet<int> SortedInactiveElements = new SortedSet<int>();
         
         private NativeList<int> elementIndexToTransformIndex;
-        //TODO a ajouter au besoin
-        //private NativeList<int> transformIndexToElementIndex;
+        private NativeList<int> transformIndexToElementIndex;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
         public NativeList<int> ElementIndexToTransformIndex => elementIndexToTransformIndex;
-        //public NativeList<int> TransformIndexToElementIndex => transformIndexToElementIndex;
-        
+        public NativeList<int> TransformIndexToElementIndex => transformIndexToElementIndex;
+
+        public override int GetIndexInFormation(T element)
+        {
+            if (!ElementKeyTransformIndex.TryGetValue(element, out int transformIndex)) return -1;
+            return transformIndexToElementIndex[transformIndex];
+        }
+
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Events ◈◈◈◈◈◈                                                                                           ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
@@ -43,21 +48,23 @@ namespace Kaizerwald.FormationModule
 //║                                          ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public override void OnUpdate()
+        public override void UpdateFormation()
         {
-            if (InactiveElements.Count == 0) return;
+            if (SortedInactiveElements.Count == 0) return;
             Rearrangement();
         }
         
         public override void Initialize(Formation formationReference, List<T> formationElements, float3 leaderPosition = default)
         {
             elementIndexToTransformIndex = new NativeList<int>(formationElements.Count, Persistent);
+            transformIndexToElementIndex = new NativeList<int>(formationElements.Count, Persistent);
             base.Initialize(formationReference, formationElements, leaderPosition);
         }
-        
-        public override void SetElementInactive(T element)
+
+        public override void RegisterInactiveElement(T element)
         {
-            InactiveElements.Add(GetIndexInFormation(element));
+            base.RegisterInactiveElement(element);
+            SortedInactiveElements.Add(GetIndexInFormation(element));
         }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
@@ -67,34 +74,38 @@ namespace Kaizerwald.FormationModule
         {
             base.Add(element);
             elementIndexToTransformIndex.Add(ElementKeyTransformIndex[element]);
+            transformIndexToElementIndex.Add(Elements.Count - 1);
         }
 
-        protected override bool Remove(T element)
+        protected override void InternalRemove(T element, int transformIndexToRemove)
         {
-            if (!ElementKeyTransformIndex.TryGetValue(element, out int indexToRemove)) return false;
-            FormationTransformAccessArray.RemoveAtSwapBack(indexToRemove);
-            Transforms.RemoveAtSwapBack(indexToRemove);
-            Elements.Remove(element);
-            ResetTransformsIndicators();
-            return true;
+            base.InternalRemove(element, transformIndexToRemove);
+            SortedInactiveElements.Add(transformIndexToElementIndex[transformIndexToRemove]);
+            UpdateFormation();
         }
         
         public override void Dispose()
         {
             if(elementIndexToTransformIndex.IsCreated) elementIndexToTransformIndex.Dispose();
+            if(transformIndexToElementIndex.IsCreated) transformIndexToElementIndex.Dispose();
             base.Dispose();
         }
 
         protected virtual void ResetTransformsIndicators()
         {
-            elementIndexToTransformIndex.Clear();
             ElementKeyTransformIndex.Clear();
-            foreach (T aliveElement in Elements)
+            elementIndexToTransformIndex.Clear();
+            transformIndexToElementIndex.Clear();
+            NativeArray<int> tmpTransformIndexToElementIndex = new (Elements.Count, Temp, UninitializedMemory);
+            for (int i = 0; i < Elements.Count; i++)
             {
+                T aliveElement = Elements[i];
                 int elementIndex = Transforms.IndexOf(aliveElement.transform);
-                elementIndexToTransformIndex.Add(elementIndex);
                 ElementKeyTransformIndex.Add(aliveElement, elementIndex);
+                elementIndexToTransformIndex.Add(elementIndex);
+                tmpTransformIndexToElementIndex[elementIndex] = i;
             }
+            transformIndexToElementIndex.CopyFrom(tmpTransformIndexToElementIndex);
         }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
@@ -102,9 +113,9 @@ namespace Kaizerwald.FormationModule
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         protected override bool RegisterInactiveElements(out int numDead)
         {
-            numDead = InactiveElements.Count;
+            numDead = SortedInactiveElements.Count;
             if (numDead == 0) return false;
-            foreach (int indexInRegiment in InactiveElements)
+            foreach (int indexInRegiment in SortedInactiveElements)
             {
                 Elements[indexInRegiment].BeforeRemoval();
             }
@@ -115,10 +126,8 @@ namespace Kaizerwald.FormationModule
         {
             //IndexToRealTransformIndex.Swap(lhs, rhs);
             //Elements.Swap(lhs, rhs);
-            
             //Since it's reset at the end is it really useful?
             (elementIndexToTransformIndex[lhs], elementIndexToTransformIndex[rhs]) = (elementIndexToTransformIndex[rhs], elementIndexToTransformIndex[lhs]);
-            
             (Elements[lhs], Elements[rhs]) = (Elements[rhs], Elements[lhs]);
             Elements[lhs].OnRearrangement(lhs);
             Elements[rhs].OnRearrangement(rhs);
@@ -129,25 +138,25 @@ namespace Kaizerwald.FormationModule
         {
             for (int i = 0; i < Elements.Count; i++)
             {
-                if (InactiveElements.Count == 0) break;
+                if (SortedInactiveElements.Count == 0) break;
                 SwapRearrange();
             }
-            InactiveElements.Clear();
+            SortedInactiveElements.Clear();
             return;
             //┌▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁┐
             //▕  ◇◇◇◇◇◇ Internal Methods ◇◇◇◇◇◇                                                                        ▏
             //└▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔┘
             void SwapRearrange() // must be in a separate function because of "InactiveElements.Min" issue when remove in a loop
             {
-                int deadIndex = InactiveElements.Min;
-                if (!RearrangementUtils.TryGetIndexAround(deadIndex, Elements, Formation, out int swapIndex))
+                int deadIndex = SortedInactiveElements.Min;
+                if (!RearrangementUtils.TryGetIndexAround(deadIndex, Elements, CurrentFormation, out int swapIndex))
                 {
-                    InactiveElements.Remove(deadIndex);
+                    SortedInactiveElements.Remove(deadIndex);
                     return;
                 }
                 SwapElementByIndex(deadIndex, swapIndex);
-                InactiveElements.Remove(deadIndex);
-                InactiveElements.Add(swapIndex);
+                SortedInactiveElements.Remove(deadIndex);
+                SortedInactiveElements.Add(swapIndex);
             }
         }
         
@@ -184,8 +193,8 @@ namespace Kaizerwald.FormationModule
             {
                 RemoveInactiveElements(cacheNumDead);
             }
-            Formation.Remove(cacheNumDead);
-            OnFormationResized?.Invoke(Formation.NumUnitsAlive);
+            CurrentFormation.Remove(cacheNumDead);
+            OnFormationResized?.Invoke(CurrentFormation.NumUnitsAlive);
         }
     }
 }

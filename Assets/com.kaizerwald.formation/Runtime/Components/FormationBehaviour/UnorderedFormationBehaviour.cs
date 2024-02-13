@@ -11,8 +11,7 @@ namespace Kaizerwald.FormationModule
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                               ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                  ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-
-        protected HashSet<T> InactiveElements = new HashSet<T>();
+        
         protected HashSet<T> CachedInactiveElements = new HashSet<T>();
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
@@ -28,19 +27,19 @@ namespace Kaizerwald.FormationModule
 //║                                          ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public override void OnUpdate()
+        public override void UpdateFormation()
         {
             if (InactiveElements.Count == 0) return;
             CachedInactiveElements = new HashSet<T>(InactiveElements);
             Rearrangement();
         }
         
-        public override void SetElementInactive(T element)
+        public override void RegisterInactiveElement(T element)
         {
             InactiveElements.Add(element);
         }
-
-        public void RemoveElement(T element)
+        /*
+        public override void RemoveElementImmediate(T element)
         {
             element.BeforeRemoval();
             TargetFormation.Decrement();
@@ -49,12 +48,12 @@ namespace Kaizerwald.FormationModule
             Formation.Decrement();
             OnFormationResized?.Invoke(Formation.NumUnitsAlive);
         }
-        
+        */
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Add | Remove ◈◈◈◈◈◈                                                                                     ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-    
-        protected override bool Remove(T element)
+        /*
+        protected bool Remove(T element)
         {
             if (!ElementKeyTransformIndex.TryGetValue(element, out int indexToRemove)) return false;
             FormationTransformAccessArray.RemoveAtSwapBack(indexToRemove);
@@ -63,6 +62,25 @@ namespace Kaizerwald.FormationModule
             //pas de décrement! car le dernier élément prend la valeur de l'index "retiré"
             ElementKeyTransformIndex[Elements[^1]] = ElementKeyTransformIndex[element];
             return ElementKeyTransformIndex.Remove(element);
+        }
+        */
+        protected override void InternalRemove(T element, int indexToRemove)
+        {
+            element.BeforeRemoval();
+            TargetFormation.Decrement();
+            
+            base.InternalRemove(element, indexToRemove);
+            Elements.RemoveAtSwapBack(indexToRemove);
+            
+            //Dictionary's RemoveAtSwapBack we set last element's index to the one we remove first
+            //to avoid need to decrement : we first Elements.RemoveAtSwapBack(indexToRemove) so Elements[^1]'s index == Count-1
+            //this way order is maintain and indices are NOT out of bounds
+            ElementKeyTransformIndex[Elements[^1]] = ElementKeyTransformIndex[element];
+            ElementKeyTransformIndex.Remove(element);
+            
+            CurrentFormation.Decrement();
+            element.AfterRemoval();
+            OnFormationResized?.Invoke(CurrentFormation.NumUnitsAlive);
         }
 
         protected override bool RegisterInactiveElements(out int numDead)
@@ -80,7 +98,13 @@ namespace Kaizerwald.FormationModule
         {
             foreach (T deadElement in CachedInactiveElements)
             {
-                Remove(deadElement);
+                //Remove(deadElement);
+                int transformIndex = ElementKeyTransformIndex[deadElement];
+                FormationTransformAccessArray.RemoveAtSwapBack(transformIndex);
+                Transforms.RemoveAtSwapBack(transformIndex);
+                Elements.RemoveAtSwapBack(transformIndex);
+                ElementKeyTransformIndex[Elements[^1]] = ElementKeyTransformIndex[deadElement];
+                ElementKeyTransformIndex.Remove(deadElement);
                 deadElement.AfterRemoval();
             }
             InactiveElements.ExceptWith(CachedInactiveElements);
@@ -98,8 +122,8 @@ namespace Kaizerwald.FormationModule
             {
                 RemoveInactiveElements();
             }
-            Formation.Remove(cacheNumDead);
-            OnFormationResized?.Invoke(Formation.NumUnitsAlive);
+            CurrentFormation.Remove(cacheNumDead);
+            OnFormationResized?.Invoke(CurrentFormation.NumUnitsAlive);
         }
     }
 }

@@ -102,7 +102,7 @@ namespace Kaizerwald
         public override void TriggerInactiveElement()
         {
             //IsInactive = true;
-            FormationMatrix.SetElementInactive(this);
+            FormationMatrix.RegisterInactiveElement(this);
         }
 
         public override void BeforeRemoval()

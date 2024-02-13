@@ -16,11 +16,17 @@ namespace Kaizerwald.FormationModule
     where T : Component, IFormationElement
     {
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+//║                                               ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                  ║
+//╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+        protected HashSet<T> InactiveElements = new HashSet<T>();
+        
+//╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public float3 LeaderTargetPosition { get; protected set; }
-        public Formation Formation { get; protected set; }
+        public float3 TargetPosition { get; protected set; }
+        public Formation CurrentFormation { get; protected set; }
         public Formation TargetFormation { get; protected set; }
         
         public List<T> Elements{ get; protected set; } // Ordered by "index in formation"
@@ -34,25 +40,25 @@ namespace Kaizerwald.FormationModule
         public T this[int index] => Elements[index];
         public int Count => Elements.Count;
         
-        public int GetIndexInFormation(T element) => Elements.IndexOf(element);
+        public virtual int GetIndexInFormation(T element) => Elements.IndexOf(element);
         
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
         //│  ◇◇◇◇◇◇ Setter ◇◇◇◇◇◇                                                                                      │
         //└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-        public void SetCurrentFormation(in FormationData currentFormation) => Formation.SetFromFormation(currentFormation);
+        public void SetCurrentFormation(in FormationData currentFormation) => CurrentFormation.SetFromFormation(currentFormation);
         public void SetTargetFormation(in FormationData targetFormation) => TargetFormation.SetFromFormation(targetFormation);
-        public void SetTargetPosition(in float3 leaderTargetPosition) => LeaderTargetPosition = leaderTargetPosition;
+        public void SetTargetPosition(in float3 leaderTargetPosition) => TargetPosition = leaderTargetPosition;
         
         public void SetDestination(in float3 leaderTargetPosition, in FormationData targetFormation)
         {
-            LeaderTargetPosition = leaderTargetPosition;
+            TargetPosition = leaderTargetPosition;
             TargetFormation.SetFromFormation(targetFormation);
         }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Events ◈◈◈◈◈◈                                                                                           ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        public abstract event Action<int> OnFormationResized;
+        public virtual event Action<int> OnFormationResized;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ UNITY EVENTS ◆◆◆◆◆◆                                             ║
@@ -66,8 +72,12 @@ namespace Kaizerwald.FormationModule
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                          ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-        public abstract void OnUpdate();
-        public abstract void SetElementInactive(T element);
+        public abstract void UpdateFormation();
+
+        public virtual void RegisterInactiveElement(T element)
+        {
+            InactiveElements.Add(element);
+        }
         
         //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
         //║ ◈◈◈◈◈◈ Initialization Methods ◈◈◈◈◈◈                                                                           ║
@@ -75,8 +85,8 @@ namespace Kaizerwald.FormationModule
         
         public virtual void Initialize(Formation formationReference, List<T> formationElements, float3 leaderPosition = default)
         {
-            LeaderTargetPosition = leaderPosition;
-            Formation = new Formation(formationReference);
+            TargetPosition = leaderPosition;
+            CurrentFormation = new Formation(formationReference);
             TargetFormation = new Formation(formationReference);
             
             Elements = new List<T>(formationElements.Count);
@@ -99,7 +109,19 @@ namespace Kaizerwald.FormationModule
             ElementKeyTransformIndex.Add(element, index);
         }
         
-        protected abstract bool Remove(T element);
+        public bool Remove(T element)
+        {
+            if (!ElementKeyTransformIndex.TryGetValue(element, out int transformIndex)) return false;
+            InternalRemove(element, transformIndex);
+            return true;
+        }
+        
+        //Allow override but keep clause guard
+        protected virtual void InternalRemove(T element, int transformIndex)
+        {
+            FormationTransformAccessArray.RemoveAtSwapBack(transformIndex);
+            Transforms.RemoveAtSwapBack(transformIndex);
+        }
         
         public virtual void Clear()
         {

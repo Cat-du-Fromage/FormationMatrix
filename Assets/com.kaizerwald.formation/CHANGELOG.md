@@ -50,3 +50,9 @@ Added:
 
 Breaking Change:
 - IFormationElement bool "IsDead" replace by "IsInactive", more generic and accurate to describe the state of the element
+
+1.2.1
+
+Fixes:
+- Remove functions logic
+- Consistent typos

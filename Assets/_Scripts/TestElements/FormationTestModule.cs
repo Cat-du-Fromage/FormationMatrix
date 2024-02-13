@@ -46,7 +46,7 @@ namespace Kaizerwald
 
         private void OnSelectFirstRow()
         {
-            for (int i = 0; i < Formation.Width; i++)
+            for (int i = 0; i < CurrentFormation.Width; i++)
             {
                 int indexTaaTarget = ElementIndexToTransformIndex[i];
                 Transform taaTarget = FormationTransformAccessArray[indexTaaTarget];
@@ -74,7 +74,7 @@ namespace Kaizerwald
 
         private void Update()
         {
-            OnUpdate();
+            UpdateFormation();
         }
 
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
@@ -105,6 +105,11 @@ namespace Kaizerwald
             ClearChildren();
             OnFirstInitialization();
         }
+        
+        public override void RegisterInactiveElement(FormationElement element)
+        {
+            base.RegisterInactiveElement(element);
+        }
 
         public void OnExecute()
         {
@@ -112,7 +117,7 @@ namespace Kaizerwald
             {
                 if (Elements[i].CurrentState != EFormationTestState.Dead) continue;
                 Debug.Log($"execute at index: {i}, State = {Elements[i].CurrentState}");
-                SetElementInactive(Elements[i]);
+                RegisterInactiveElement(Elements[i]);
             }
         }
 
@@ -151,5 +156,7 @@ namespace Kaizerwald
                 Destroy(transform.GetChild(i).gameObject);
             }
         }
+
+        
     }
 }
