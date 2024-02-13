@@ -10,21 +10,17 @@ using UnityEngine.UI;
 
 namespace Kaizerwald
 {
-    public class FormationTestModule : MonoBehaviour
+    public sealed class FormationTestModule : OrderedFormationBehaviour<FormationElement>
     {
         [SerializeField] private Button ResetButton;
         [SerializeField] private Button ExecuteButton;
         [SerializeField] private Button SelectFirstRow;
-        private FormationMatrix<FormationElement> formationMatrix;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
         
         public GridLayoutGroup Grid { get; private set; }
-        public Formation CurrentFormation { get; private set; }
-        
-        public List<FormationElement> Elements { get; private set; }
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
@@ -46,16 +42,14 @@ namespace Kaizerwald
             ResetButton.onClick.AddListener(OnReset);
             ExecuteButton.onClick.AddListener(OnExecute);
             SelectFirstRow.onClick.AddListener(OnSelectFirstRow);
-            
         }
 
         private void OnSelectFirstRow()
         {
-            for (int i = 0; i < formationMatrix.Formation.Width; i++)
+            for (int i = 0; i < Formation.Width; i++)
             {
-                int indexTaaTarget = formationMatrix.IndexToRealTransformIndex[i];
-                Transform taaTarget = formationMatrix.FormationTransformAccessArray[indexTaaTarget];
-                
+                int indexTaaTarget = ElementIndexToTransformIndex[i];
+                Transform taaTarget = FormationTransformAccessArray[indexTaaTarget];
                 if (Elements[i].transform != taaTarget) continue;
                 Elements[i].OnSelected();
             }
@@ -66,7 +60,7 @@ namespace Kaizerwald
             ResetButton.onClick.RemoveListener(OnReset);
             ExecuteButton.onClick.RemoveListener(OnExecute);
             SelectFirstRow.onClick.RemoveListener(OnSelectFirstRow);
-            formationMatrix.OnSwapEvent -= OnSwap;
+            OnElementSwapped -= OnSwap;
         }
         
         private void OnSwap(int rhs, int lhs)
@@ -80,12 +74,7 @@ namespace Kaizerwald
 
         private void Update()
         {
-            formationMatrix.OnUpdate();
-        }
-
-        private void OnDestroy()
-        {
-            formationMatrix?.Dispose();
+            OnUpdate();
         }
 
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
@@ -121,47 +110,45 @@ namespace Kaizerwald
         {
             for (int i = 0; i < Elements.Count; i++)
             {
-                if (formationMatrix[i].CurrentState != EFormationTestState.Dead) continue;
+                if (Elements[i].CurrentState != EFormationTestState.Dead) continue;
                 Debug.Log($"execute at index: {i}, State = {Elements[i].CurrentState}");
-                formationMatrix.OnUnitKilled(Elements[i]);
+                SetElementInactive(Elements[i]);
             }
         }
 
+        
         public void OnFirstInitialization()
         {
-            formationMatrix?.Dispose();
-            CurrentFormation = new Formation(BaseFormation);
-            Grid.constraintCount = BaseFormation.Width;
+            //Clear();
+            //Dispose();
+            Formation tmpFormation = new Formation(BaseFormation);
+            Grid.constraintCount = tmpFormation.Width;
 
             GameObject prefab = FormationDataSingleton.Instance.FormationElementPrefab;
-            Elements = new List<FormationElement>(CurrentFormation.NumUnitsAlive);
-            Debug.Log($"OnFirstInitialization: {CurrentFormation.NumUnitsAlive}");
-            for (int i = 0; i < CurrentFormation.NumUnitsAlive; i++)
+            List<FormationElement> tmpElements = new List<FormationElement>(tmpFormation.NumUnitsAlive);
+            
+            Debug.Log($"OnFirstInitialization: {tmpFormation.NumUnitsAlive}");
+            for (int i = 0; i < tmpFormation.NumUnitsAlive; i++)
             {
                 //int2 coords = KzwMath.GetXY2(i, CurrentFormation.Width);
-                FormationElement newElement = Instantiate(prefab, transform).GetComponent<FormationElement>();
+                GameObject newElementGameObject = Instantiate(prefab, transform);
+                FormationElement newElement = newElementGameObject.GetComponent<FormationElement>();
                 newElement.Initialize(i);
                 //newElement.SetElementNumber(i);
-                Elements.Add(newElement);
+                tmpElements.Add(newElement);
             }
-            formationMatrix = new FormationMatrix<FormationElement>(CurrentFormation, Elements);
-            formationMatrix.OnSwapEvent += OnSwap;
-            formationMatrix.OnFormationResized += Resize;
-            //formationMatrix.OnFormationEmpty += ClearChildren;
-            //formationMatrix.OnFormationRearranged += OnFormationRearrangedEvent;
+            Initialize(tmpFormation, tmpElements);
+            OnElementSwapped += OnSwap;
+            OnFormationResized += Resize;
         }
 
         private void OnFormationRearrangedEvent()
         {
-            
             for (int i = Elements.Count-1; i > -1; i--)
             {
-                //Debug.Log($"OnFormationRearrangedEvent: {i} count {Elements.Count}");
-                Debug.Log($"OnFormationRearrangedEvent: Dead: {formationMatrix.Elements[i].IsDead} {i} count {formationMatrix.Elements.Count}");
-                if (!formationMatrix.Elements[i].IsDead) continue;
-                //Debug.Log($"OnFormationRearrangedEvent: {i} count {Elements.Count}");
+                Debug.Log($"OnFormationRearrangedEvent: Dead: {Elements[i].IsInactive} {i} count {Count}");
+                if (!Elements[i].IsInactive) continue;
                 Destroy(transform.GetChild(i).gameObject);
-                //Elements.RemoveAt(i);
             }
         }
     }

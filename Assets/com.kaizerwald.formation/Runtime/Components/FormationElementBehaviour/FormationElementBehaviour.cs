@@ -10,20 +10,18 @@ namespace Kaizerwald.FormationModule
 //║                                               ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                  ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        protected FormationMatrixBehaviour<FormationElementBehaviour> FormationMatrix;
+        protected BaseFormationBehaviour<FormationElementBehaviour> FormationMatrix;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-        
-        public int IndexInFormation { get; protected set; }
-        public bool IsDead { get; protected set; }
+        public bool IsInactive { get; protected set; }
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                          ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public void AttachToFormationMatrix(FormationMatrixBehaviour<FormationElementBehaviour> formationMatrix)
+        public void AttachToFormationMatrix(BaseFormationBehaviour<FormationElementBehaviour> formationMatrix)
         {
             FormationMatrix = formationMatrix;
         }
@@ -31,8 +29,8 @@ namespace Kaizerwald.FormationModule
         //previously: TriggerDeath()
         public virtual void TriggerInactiveElement()
         {
-            IsDead = true;
-            FormationMatrix.OnUnitKilled(this);
+            IsInactive = true;
+            FormationMatrix.SetElementInactive(this);
         }
 
         public virtual void BeforeRemoval() { return; }

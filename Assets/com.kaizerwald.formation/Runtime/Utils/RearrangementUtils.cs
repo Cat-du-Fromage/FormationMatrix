@@ -114,7 +114,7 @@ namespace Kaizerwald.FormationModule
         private static bool IsUnitValid<T>(T unit) 
             where T : Component, IFormationElement
         {
-            return !unit.IsDead;
+            return !unit.IsInactive;
         }
 
         private static int GetIndexBehind(int unitsCount, int xInRegiment, int yInRegiment,int width)

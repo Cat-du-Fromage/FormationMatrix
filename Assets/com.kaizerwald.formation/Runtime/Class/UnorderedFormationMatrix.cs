@@ -113,11 +113,9 @@ namespace Kaizerwald.FormationModule
         {
             //bool elementExist = ElementKeyTransformIndex.TryGetValue(element, out int indexToRemove);
             if (!ElementKeyTransformIndex.TryGetValue(element, out int indexToRemove)) return false;
-            
             FormationTransformAccessArray.RemoveAtSwapBack(indexToRemove);
             Transforms.RemoveAtSwapBack(indexToRemove);
             Elements.RemoveAtSwapBack(indexToRemove);
-
             //pas de décrement! car le dernier élément prend la valeur de l'index "retiré"
             ElementKeyTransformIndex[Elements[^1]] = ElementKeyTransformIndex[element];
             return ElementKeyTransformIndex.Remove(element);

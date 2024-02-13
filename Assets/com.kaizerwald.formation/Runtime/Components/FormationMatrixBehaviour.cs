@@ -120,7 +120,7 @@ namespace Kaizerwald.FormationModule
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
     
     
-        //TODO: Change for OnElementDeactivate/OnElementInactie
+        //TODO: Change for OnElementDeactivate/OnElementInactive
         public virtual void OnUnitKilled(T element)
         {
             deadElements.Add(GetIndexInFormation(element));
@@ -145,8 +145,8 @@ namespace Kaizerwald.FormationModule
         
         public virtual bool Remove(T element)
         {
-            bool elementExist = ElementKeyTransformIndex.TryGetValue(element, out int indexToRemove);
-            if (!elementExist) return false;
+            //bool elementExist = ElementKeyTransformIndex.TryGetValue(element, out int indexToRemove);
+            if (!ElementKeyTransformIndex.TryGetValue(element, out int indexToRemove)) return false;
             FormationTransformAccessArray.RemoveAtSwapBack(indexToRemove);
             Transforms.RemoveAtSwapBack(indexToRemove);
             Elements.Remove(element);

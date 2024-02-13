@@ -12,7 +12,7 @@ using static Unity.Collections.NativeArrayOptions;
 
 namespace Kaizerwald.FormationModule
 {
-    public abstract class BaseFormationMatrixBehaviour<T> : MonoBehaviour
+    public abstract class BaseFormationBehaviour<T> : MonoBehaviour
     where T : Component, IFormationElement
     {
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
@@ -26,13 +26,15 @@ namespace Kaizerwald.FormationModule
         public List<T> Elements{ get; protected set; } // Ordered by "index in formation"
         public List<Transform> Transforms { get; protected set; }
         public TransformAccessArray FormationTransformAccessArray { get; protected set; }
-        public Dictionary<T, int> ElementKeyTransformIndex { get; private set; } 
+        public Dictionary<T, int> ElementKeyTransformIndex { get; protected set; } 
         
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Accessors ◈◈◈◈◈◈                                                                                        ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         public T this[int index] => Elements[index];
         public int Count => Elements.Count;
+        
+        public int GetIndexInFormation(T element) => Elements.IndexOf(element);
         
         //┌────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
         //│  ◇◇◇◇◇◇ Setter ◇◇◇◇◇◇                                                                                      │
@@ -50,7 +52,7 @@ namespace Kaizerwald.FormationModule
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Events ◈◈◈◈◈◈                                                                                           ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        public virtual event Action<int> OnFormationResized;
+        public abstract event Action<int> OnFormationResized;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ UNITY EVENTS ◆◆◆◆◆◆                                             ║
@@ -65,68 +67,57 @@ namespace Kaizerwald.FormationModule
 //║                                          ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
         public abstract void OnUpdate();
+        public abstract void SetElementInactive(T element);
         
         //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
         //║ ◈◈◈◈◈◈ Initialization Methods ◈◈◈◈◈◈                                                                           ║
         //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        public virtual BaseFormationMatrixBehaviour<T> Initialize(float3 leaderPosition, Formation formationReference, List<T> formationElements)
+        
+        public virtual void Initialize(Formation formationReference, List<T> formationElements, float3 leaderPosition = default)
         {
             LeaderTargetPosition = leaderPosition;
-            Formation = formationReference;
+            Formation = new Formation(formationReference);
             TargetFormation = new Formation(formationReference);
             
-            Elements = formationElements; // we link the lists
+            Elements = new List<T>(formationElements.Count);
             Transforms = new List<Transform>(formationElements.Count);
             FormationTransformAccessArray = new TransformAccessArray(formationElements.Count);
             ElementKeyTransformIndex = new Dictionary<T, int>(formationElements.Count);
-            for (int i = 0; i < formationElements.Count; i++)
-            {
-                T element = formationElements[i];
-                Transforms.Add(element.transform);
-                FormationTransformAccessArray.Add(element.transform);
-                ElementKeyTransformIndex.Add(element, i);
-            }
-            return this;
+            formationElements.ForEach(Add);
         }
-
+        
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Add | Remove ◈◈◈◈◈◈                                                                                     ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        public abstract void Add(T element);
-        public abstract bool Remove(T element);
+        
+        public virtual void Add(T element)
+        {
+            int index = Transforms.Count;
+            Elements.Add(element);
+            Transforms.Add(element.transform);
+            FormationTransformAccessArray.Add(element.transform);
+            ElementKeyTransformIndex.Add(element, index);
+        }
+        
+        protected abstract bool Remove(T element);
         
         public virtual void Clear()
         {
-            Transforms.Clear();
-            Elements.Clear();
-            ElementKeyTransformIndex.Clear();
+            Transforms?.Clear();
+            Elements?.Clear();
+            ElementKeyTransformIndex?.Clear();
         }
         
         public virtual void Dispose()
         {
+            Clear();
             if(FormationTransformAccessArray.isCreated) FormationTransformAccessArray.Dispose();
         }
 
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Rearrangement ◈◈◈◈◈◈                                                                                    ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        protected abstract bool RegisterDeaths(out int numDead);
-        protected abstract void ProcessDestroyedElements(int cacheNumDead);
-    
-        protected void Rearrangement()
-        {
-            if (!RegisterDeaths(out int cacheNumDead)) return;
-            TargetFormation.Remove(cacheNumDead); //was needed before rearrange, make more sense to let it here anyway
-            if (cacheNumDead >= Elements.Count)
-            {
-                Clear();
-            }
-            else
-            {
-                ProcessDestroyedElements(cacheNumDead);
-            }
-            Formation.Remove(cacheNumDead);
-            OnFormationResized?.Invoke(Formation.NumUnitsAlive);
-        }
+        protected abstract bool RegisterInactiveElements(out int numDead);
+        protected abstract void Rearrangement();
     }
 }

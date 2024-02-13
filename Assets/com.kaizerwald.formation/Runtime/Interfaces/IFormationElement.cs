@@ -6,7 +6,7 @@ namespace Kaizerwald.FormationModule
 {
     public interface IFormationElement
     {
-        public bool IsDead { get; }
+        public bool IsInactive { get; }
 
         public void BeforeRemoval();
         

@@ -42,3 +42,11 @@ Added:
 Fixe Before Breaking Changes
 Fixed:
 - UnorderedFormation DestroyImmediate has now correct behaviour
+
+1.2.0
+
+Added:
+- OrderedFormationBehaviour, UnorderedFormationBehaviour, FormationElementbehaviour
+
+Breaking Change:
+- IFormationElement bool "IsDead" replace by "IsInactive", more generic and accurate to describe the state of the element

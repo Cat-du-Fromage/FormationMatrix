@@ -29,8 +29,10 @@ namespace Kaizerwald
         private void Start()
         {
             Debug.Log($"FormationDataSingleton: Start = {FormationTestModules.Count}");
+            int i = 0;
             foreach (FormationTestModule testModule in FormationTestModules)
             {
+                Debug.Log($"FormationDataSingleton: {i++}");
                 testModule.OnFirstInitialization();
             }
         }

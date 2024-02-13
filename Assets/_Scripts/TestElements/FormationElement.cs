@@ -15,14 +15,14 @@ namespace Kaizerwald
         Selected
     }
     
-    public class FormationElement : MonoBehaviour, IOrderedFormationElement
+    public class FormationElement : FormationElementBehaviour
     {
         public int InitialIndex;
         [field:SerializeField] public int PreviousIndexInRegiment { get; set; }
         [field:SerializeField] public int CurrentIndexInRegiment { get; set; }
         
-        [field:SerializeField]  public int IndexInFormation { get; private set; }
-        [field:SerializeField] public bool IsDead { get; private set; }
+        //[field:SerializeField] public int IndexInFormation { get; private set; }
+        //[field:SerializeField] public bool IsInactive { get; private set; }
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                               ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                  ║
@@ -38,6 +38,8 @@ namespace Kaizerwald
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+        public int IndexInFormation { get; set; }
 
         [field:SerializeField] public EFormationTestState CurrentState { get; private set; }
         
@@ -92,17 +94,23 @@ namespace Kaizerwald
 
         public void Initialize(int index)
         {
-            
+            IndexInFormation = index;
             InitialIndex = PreviousIndexInRegiment = CurrentIndexInRegiment = index;
             SetElementNumber(index);
         }
-
-        public void BeforeRemoval()
+        
+        public override void TriggerInactiveElement()
         {
-            IsDead = true;
+            //IsInactive = true;
+            FormationMatrix.SetElementInactive(this);
         }
 
-        public void AfterRemoval()
+        public override void BeforeRemoval()
+        {
+            IsInactive = true;
+        }
+
+        public override void AfterRemoval()
         {
             Destroy(this.gameObject);
         }
@@ -112,7 +120,7 @@ namespace Kaizerwald
             return $"now: {CurrentIndexInRegiment}(before: {PreviousIndexInRegiment}), Initial: {InitialIndex}";
         }
 
-        public void OnRearrangement(int newIndexInFormation)
+        public override void OnRearrangement(int newIndexInFormation)
         {
             SetElementNumber(newIndexInFormation);
         }
@@ -176,7 +184,5 @@ namespace Kaizerwald
             button.colors = deadColorBlock;
             CurrentState = EFormationTestState.Dead;
         }
-
-        
     }
 }

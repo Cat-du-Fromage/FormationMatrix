@@ -6,6 +6,6 @@ namespace Kaizerwald.FormationModule
 {
     public interface IOrderedFormationElement : IFormationElement
     {
-        public int IndexInFormation { get; }
+        public int IndexInFormation { get; set; }
     }
 }
