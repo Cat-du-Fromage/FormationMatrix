@@ -21,9 +21,11 @@ namespace Kaizerwald.FormationModule
 //║                                          ◆◆◆◆◆◆ CLASS METHODS ◆◆◆◆◆◆                                               ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-        public void AttachToFormationMatrix(BaseFormationBehaviour<FormationElementBehaviour> formationMatrix)
+        public virtual void AttachToParentFormation<T1,T2>(T1 formationMatrix)
+        where T1 : BaseFormationBehaviour<T2>
+        where T2 : FormationElementBehaviour
         {
-            FormationMatrix = formationMatrix;
+            FormationMatrix = formationMatrix as BaseFormationBehaviour<FormationElementBehaviour>;
         }
 
         //previously: TriggerDeath()
