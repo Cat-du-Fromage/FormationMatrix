@@ -134,7 +134,7 @@ namespace Kaizerwald.FormationModule
             OnElementSwapped?.Invoke(lhs, rhs);
         }
         
-        private void Rearrange()
+        protected void Rearrange()
         {
             for (int i = 0; i < Elements.Count; i++)
             {
