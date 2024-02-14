@@ -1,6 +1,6 @@
 {
   "name": "com.kaizerwald.formation",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "displayName": "Kaizerwald's Formation Module",
   "description": "Formation Tool for RTT style game",
   "unity": "2023.2",

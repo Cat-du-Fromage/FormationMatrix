@@ -56,3 +56,12 @@ Breaking Change:
 Fixes:
 - Remove functions logic
 - Consistent typos
+
+1.2.2
+
+Fixes:
+- UnorderedFormationBehaviour Remove function
+- Formation MinRow/MaxRow now take in account NumUnitsAlive!
+
+Added:
+- Formation: BaseMinRow, BaseMaxRow to differentiate from MinRow, MaxRow

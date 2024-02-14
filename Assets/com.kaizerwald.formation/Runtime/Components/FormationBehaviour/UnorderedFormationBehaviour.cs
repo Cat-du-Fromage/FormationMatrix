@@ -70,13 +70,9 @@ namespace Kaizerwald.FormationModule
             TargetFormation.Decrement();
             
             base.InternalRemove(element, indexToRemove);
-            Elements.RemoveAtSwapBack(indexToRemove);
-            
-            //Dictionary's RemoveAtSwapBack we set last element's index to the one we remove first
-            //to avoid need to decrement : we first Elements.RemoveAtSwapBack(indexToRemove) so Elements[^1]'s index == Count-1
-            //this way order is maintain and indices are NOT out of bounds
             ElementKeyTransformIndex[Elements[^1]] = ElementKeyTransformIndex[element];
             ElementKeyTransformIndex.Remove(element);
+            Elements.RemoveAtSwapBack(indexToRemove);
             
             CurrentFormation.Decrement();
             element.AfterRemoval();
@@ -102,9 +98,9 @@ namespace Kaizerwald.FormationModule
                 int transformIndex = ElementKeyTransformIndex[deadElement];
                 FormationTransformAccessArray.RemoveAtSwapBack(transformIndex);
                 Transforms.RemoveAtSwapBack(transformIndex);
-                Elements.RemoveAtSwapBack(transformIndex);
                 ElementKeyTransformIndex[Elements[^1]] = ElementKeyTransformIndex[deadElement];
                 ElementKeyTransformIndex.Remove(deadElement);
+                Elements.RemoveAtSwapBack(transformIndex);
                 deadElement.AfterRemoval();
             }
             InactiveElements.ExceptWith(CachedInactiveElements);

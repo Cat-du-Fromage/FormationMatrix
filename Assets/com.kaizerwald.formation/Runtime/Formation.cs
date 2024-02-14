@@ -18,8 +18,8 @@ namespace Kaizerwald.FormationModule
 //║                                                ◆◆◆◆◆◆ FIELD ◆◆◆◆◆◆                                                 ║
 //╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
         public readonly int BaseNumUnits;
-        public readonly int MinRow; 
-        public readonly int MaxRow;
+        public readonly int BaseMinRow; 
+        public readonly int BaseMaxRow;
         public readonly float2 UnitSize;
         public readonly float SpaceBetweenUnits;
         
@@ -30,6 +30,9 @@ namespace Kaizerwald.FormationModule
         public int Width { get; private set; }
         public int Depth { get; private set; }
         public float3 DirectionForward { get; private set; }
+        
+        public int MinRow => min(BaseMinRow, NumUnitsAlive);
+        public int MaxRow => min(BaseMaxRow, NumUnitsAlive);
         public int2 MinMaxRow => int2(MinRow, MaxRow);
 
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
@@ -40,11 +43,11 @@ namespace Kaizerwald.FormationModule
         {
             BaseNumUnits = NumUnitsAlive = max(1,numUnits);
             int2 minMax = minMaxRow.Equals(default) ? new int2(1, max(1, BaseNumUnits / 2)) : minMaxRow;
-            MinRow = (byte)min(byte.MaxValue, minMax.x);
-            MaxRow = (byte)min(byte.MaxValue, minMax.y);
+            BaseMinRow = (byte)min(byte.MaxValue, minMax.x);
+            BaseMaxRow = (byte)min(byte.MaxValue, minMax.y);
             UnitSize = unitSize.IsAlmostEqual(default) ? float2(1) : unitSize;
             SpaceBetweenUnits = spaceBetweenUnit;
-            Width = BaseNumUnits < MinRow ? BaseNumUnits : clamp(width, MinRow, MaxRow);
+            Width = BaseNumUnits < BaseMinRow ? BaseNumUnits : clamp(width, BaseMinRow, BaseMaxRow);
             Depth = (int)ceil(BaseNumUnits / max(1f,Width));
             DirectionForward = direction.IsAlmostEqual(default) ? forward() : normalizesafe(direction);
         }
@@ -52,8 +55,8 @@ namespace Kaizerwald.FormationModule
         public Formation(in FormationData other)
         {
             BaseNumUnits = NumUnitsAlive = other.NumUnitsAlive;
-            MinRow = other.MinRow;
-            MaxRow = other.MaxRow;
+            BaseMinRow = other.MinRow;
+            BaseMaxRow = other.MaxRow;
             UnitSize = other.UnitSize;
             SpaceBetweenUnits = other.SpaceBetweenUnits;
             Width = other.Width;
@@ -121,7 +124,7 @@ namespace Kaizerwald.FormationModule
 
         public void SetWidth(int newWidth)
         {
-            Width = min(MaxRow, newWidth);
+            Width = min(BaseMaxRow, newWidth);
             Depth = (int)ceil(NumUnitsAlive / max(1f,Width));
         }
         
@@ -159,8 +162,8 @@ namespace Kaizerwald.FormationModule
         {
             return $"Current formation:\r\n" +
                    $"BaseNumUnits:{BaseNumUnits}\r\n" +
-                   $"MinRow {MinRow}\r\n" +
-                   $"MaxRow {MaxRow}\r\n" +
+                   $"MinRow {BaseMinRow}\r\n" +
+                   $"MaxRow {BaseMaxRow}\r\n" +
                    $"UnitSize {UnitSize}\r\n" +
                    $"SpaceBetweenUnits {SpaceBetweenUnits}\r\n" +
                    $"NumUnitsAlive {NumUnitsAlive}\r\n" +

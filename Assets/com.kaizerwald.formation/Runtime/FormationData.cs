@@ -119,8 +119,8 @@ namespace Kaizerwald.FormationModule
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         public FormationData(Formation other)
         {
-            minRow = (byte)other.MinRow;
-            maxRow = (byte)other.MaxRow;
+            minRow = (byte)other.BaseMinRow;
+            maxRow = (byte)other.BaseMaxRow;
             spaceBetweenUnits = half(other.SpaceBetweenUnits);
             unitSize = half2(other.UnitSize);
             numUnitsAlive = (ushort)max(0,other.NumUnitsAlive);
@@ -131,8 +131,8 @@ namespace Kaizerwald.FormationModule
         
         public FormationData(Formation other, int numUnits, int newWidth, float3 direction)
         {
-            minRow = (byte)other.MinRow;
-            maxRow = (byte)other.MaxRow;
+            minRow = (byte)other.BaseMinRow;
+            maxRow = (byte)other.BaseMaxRow;
             spaceBetweenUnits = half(other.SpaceBetweenUnits);
             unitSize = half2(other.UnitSize);
             numUnitsAlive = (ushort)max(0,numUnits);
