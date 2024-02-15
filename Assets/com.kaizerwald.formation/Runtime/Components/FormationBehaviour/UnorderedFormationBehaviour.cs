@@ -38,32 +38,10 @@ namespace Kaizerwald.FormationModule
         {
             InactiveElements.Add(element);
         }
-        /*
-        public override void RemoveElementImmediate(T element)
-        {
-            element.BeforeRemoval();
-            TargetFormation.Decrement();
-            Remove(element);
-            element.AfterRemoval();
-            Formation.Decrement();
-            OnFormationResized?.Invoke(Formation.NumUnitsAlive);
-        }
-        */
+        
     //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
     //║ ◈◈◈◈◈◈ Add | Remove ◈◈◈◈◈◈                                                                                     ║
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
-        /*
-        protected bool Remove(T element)
-        {
-            if (!ElementKeyTransformIndex.TryGetValue(element, out int indexToRemove)) return false;
-            FormationTransformAccessArray.RemoveAtSwapBack(indexToRemove);
-            Transforms.RemoveAtSwapBack(indexToRemove);
-            Elements.RemoveAtSwapBack(indexToRemove);
-            //pas de décrement! car le dernier élément prend la valeur de l'index "retiré"
-            ElementKeyTransformIndex[Elements[^1]] = ElementKeyTransformIndex[element];
-            return ElementKeyTransformIndex.Remove(element);
-        }
-        */
         protected override void InternalRemove(T element, int indexToRemove)
         {
             element.BeforeRemoval();
@@ -76,7 +54,8 @@ namespace Kaizerwald.FormationModule
             
             CurrentFormation.Decrement();
             element.AfterRemoval();
-            OnFormationResized?.Invoke(CurrentFormation.NumUnitsAlive);
+            HandleFormationResized(CurrentFormation.NumUnitsAlive);
+            //OnFormationResized?.Invoke(CurrentFormation.NumUnitsAlive);
         }
 
         protected override bool RegisterInactiveElements(out int numDead)
@@ -119,7 +98,8 @@ namespace Kaizerwald.FormationModule
                 RemoveInactiveElements();
             }
             CurrentFormation.Remove(cacheNumDead);
-            OnFormationResized?.Invoke(CurrentFormation.NumUnitsAlive);
+            HandleFormationResized(CurrentFormation.NumUnitsAlive);
+            //OnFormationResized?.Invoke(CurrentFormation.NumUnitsAlive);
         }
     }
 }

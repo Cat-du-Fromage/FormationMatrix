@@ -141,5 +141,13 @@ namespace Kaizerwald.FormationModule
     //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
         protected abstract bool RegisterInactiveElements(out int numDead);
         protected abstract void Rearrangement();
+        
+    //╓────────────────────────────────────────────────────────────────────────────────────────────────────────────────╖
+    //║ ◈◈◈◈◈◈ Events ◈◈◈◈◈◈                                                                                           ║
+    //╙────────────────────────────────────────────────────────────────────────────────────────────────────────────────╜
+        protected virtual void HandleFormationResized(int numElementAfterResize)
+        {
+            OnFormationResized?.Invoke(numElementAfterResize);
+        }
     }
 }

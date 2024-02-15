@@ -131,7 +131,7 @@ namespace Kaizerwald.FormationModule
             (Elements[lhs], Elements[rhs]) = (Elements[rhs], Elements[lhs]);
             Elements[lhs].OnRearrangement(lhs);
             Elements[rhs].OnRearrangement(rhs);
-            OnElementSwapped?.Invoke(lhs, rhs);
+            HandleElementSwapped(lhs, rhs);
         }
         
         protected void Rearrange()
@@ -194,7 +194,13 @@ namespace Kaizerwald.FormationModule
                 RemoveInactiveElements(cacheNumDead);
             }
             CurrentFormation.Remove(cacheNumDead);
-            OnFormationResized?.Invoke(CurrentFormation.NumUnitsAlive);
+            HandleFormationResized(CurrentFormation.NumUnitsAlive);
+            //OnFormationResized?.Invoke(CurrentFormation.NumUnitsAlive);
+        }
+
+        protected virtual void HandleElementSwapped(int lhs, int rhs)
+        {
+            OnElementSwapped?.Invoke(lhs, rhs);
         }
     }
 }

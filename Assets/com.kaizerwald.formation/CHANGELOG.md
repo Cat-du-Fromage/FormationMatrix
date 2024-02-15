@@ -65,3 +65,8 @@ Fixes:
 
 Added:
 - Formation: BaseMinRow, BaseMaxRow to differentiate from MinRow, MaxRow
+
+1.2.3
+
+Added:
+- FormationBehaviours have Virtual function wrappers so derived class can add behaviour before and after Event without having to subscribe to their own events
