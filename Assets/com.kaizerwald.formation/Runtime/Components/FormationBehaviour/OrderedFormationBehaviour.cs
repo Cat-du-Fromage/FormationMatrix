@@ -22,8 +22,8 @@ namespace Kaizerwald.FormationModule
 
         protected SortedSet<int> SortedInactiveElements = new SortedSet<int>();
         
-        private NativeList<int> elementIndexToTransformIndex;
-        private NativeList<int> transformIndexToElementIndex;
+        protected NativeList<int> elementIndexToTransformIndex;
+        protected NativeList<int> transformIndexToElementIndex;
         
 //╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 //║                                             ◆◆◆◆◆◆ PROPERTIES ◆◆◆◆◆◆                                               ║
